@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>图片上传处理带进度条</title>
+    <style>
+        .title{
+        	width:300px;
+        	height:100px;
+        	margin: 0 auto;
+            font-size: 30px;
+        }
+        .addpic{
+        	font-size: 25px;
+        	margin-top:50px;
+        }
+        .img{
+        	width:400px;
+        	height:300px;
+        	border:1px solid #000;
+        }
+        .box{
+            position: relative;
+            width:200px;height:20px;
+            border:1px solid #000;
+        }
+        .progress{
+            background:red;
+            width:0;
+            height:100%;
+            position: absolute;
+            left:0;top:0;
+            text-align: center;
+        }
+    </style>
+    <script>
+        window.onload=function(){
+            /*
+            * 文件对象
+            * 进度条的dom对象
+            * 预览图片的容器
+            * */
+
+                var one=document.getElementsByTagName("input")[0];
+                var two=document.getElementsByClassName("progress")[0];
+                var three=document.getElementsByTagName("img")[0];
+                var uploadObj = new upload("后台地址",one,two,three);
+                uploadObj.up();
+
+        }
+
+        function upload(url,file,progressDom,imgBox){
+           this.file=file;
+           this.progressDom=progressDom;
+           this.imgBox=imgBox;
+           this.type=["image/jpeg","image/png","image/gif"];
+           this.size=1024*1024*3;
+           this.url=url;
+        }
+        upload.prototype={
+            up:function(){
+                var that=this;
+                //监听事件
+                this.file.onchange=function(){
+                    that.fileObj=this.files[0];
+
+
+                    // 限制文件的上传类型
+                    var flag=false;
+                    for(var i=0;i<that.type.length;i++){
+                        if(that.fileObj.type==that.type[i]){
+                     flag=true;
+                      break;
+                        }
+                    }
+                    if(!flag){
+                        that.file.value="";
+                        alert("类型不符");
+                        return ;
+                    }
+					//限制文件的大小 
+                    if(that.fileObj.size>that.size){
+                        that.file.value="";
+                        alert("太大了");
+                        return;
+                    }
+
+                    console.log(that.fileObj);
+
+                    var fileread=new FileReader();
+                	console.log(fileread)
+
+                    fileread.readAsDataURL(that.fileObj);
+                    fileread.onload=function(e){
+                        that.imgBox.src= e.target.result;
+                    }
+                    //创建form对象
+                    var obj=that.createFrom();
+                    //创建 ajax对象
+                    that.createAjax(obj);
+                }
+
+
+            },
+            createFrom:function(){
+                var obj=new FormData();
+                obj.append("file",this.fileObj);
+                return obj;
+            },
+            createAjax:function(obj){
+                var that=this;
+                var xmlobj=new XMLHttpRequest();
+                xmlobj.upload.onprogress=function(e){
+                	// console.log(e.loaded)
+                    var val=e.loaded/ e.total*100+"%";
+                    that.progressDom.style.width=val;
+                    that.progressDom.innerHTML=val;
+                }
+                xmlobj.upload.onloadstart=function(){
+                    that.file.setAttribute("disabled","disabled");
+                }
+
+                xmlobj.upload.onloadend=function(){
+                    that.file.removeAttribute("disabled");
+                    that.file.value="";
+                }
+                xmlobj.upload.onerror=function(){
+                    that.file.value="";
+                }
+                xmlobj.open("post",this.url);
+                xmlobj.send(obj);
+            }
+        }
+    </script>
+</head>
+<body>
+<!--
+文件的处理
+如何使用ajax
+-->
+    <div class="title">pc端上传图片的处理</div>
+    <span class="addpic">点击右侧“选择文件”添加图片</span>
+  	<input type="file" >
+  	<div class="addpic">图片预览</div>	
+	<div class="img">
+	    <img src="" alt="" width="100%">
+	</div>
+	<div class="addpic">进度条</div>
+	<div class="box">
+	    <div class="progress">
+
+	    </div>
+	</div>
+
+</body>
+</html>
