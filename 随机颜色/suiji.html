@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>removeAttr demo</title>
+  <script src="jquery.js"></script>
+  <style type="text/css">
+    div{
+      width:200px;
+      height:200px;
+      background-color:red;
+    }
+  </style>
+</head>
+<body>
+<button>点击随机改变下方矩形颜色</button>
+<div></div>
+</body>
+</html>
+<script>
+$("button").click(function(){
+  $("div").css("background-color",getcolor())
+})
+function getcolor () {
+  var rgb = []
+  for (var i = 0 ; i < 3; i++){
+    var color = Math.floor(Math.random() * 256).toString(16)
+    color = color.length == 1 ? '0' + color : color
+    rgb.push(color)
+  }
+  var color='#' + rgb.join('');
+  return color
+}
+
+
+</script>
