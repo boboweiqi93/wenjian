@@ -1,0 +1,418 @@
+html,
+body,
+.mui-bar-nav ~ .mui-content {
+    background-color: #787876;
+    font-family: 微软雅黑;
+}
+
+html,
+body {
+    font-size: 14px;
+}
+
+
+/* header 颜色 */
+
+#header {
+    background-color: #0B0B0B;
+}
+
+
+/* iconfont 引入字体 */
+
+@font-face {
+    font-family: 'iconfont';
+    src: url('./iconfont/iconfont.eot');
+    /* IE9*/
+    src: url('./iconfont/iconfont.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+    url('./iconfont/iconfont.woff') format('woff'), /* chrome、firefox */
+    url('./iconfont/iconfont.ttf') format('truetype'), /* chrome、firefox、opera、Safari, Android, iOS 4.2+*/
+    url('./iconfont/iconfont.svg#iconfont') format('svg');
+    /* iOS 4.1- */
+}
+
+.iconfont {
+    font-family: "iconfont" !important;
+    font-size: 16px;
+    font-style: normal;
+    -webkit-font-smoothing: antialiased;
+    -webkit-text-stroke-width: 0.2px;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+
+/*输入框前面字体*/
+
+.mui-input-row label {
+    color: #fff;
+    font-size: 16px;
+}
+
+
+/*输入框字体的颜色*/
+
+input,
+textarea,
+select,
+option {
+    /*color:#4a89dc;*/
+    color: olive !important;
+    font-size: 16px;
+    letter-spacing: 2px;
+}
+
+a:active {
+    color: #474747;
+}
+
+
+/*导航条*/
+
+.mui-bar-nav {
+    box-shadow: none;
+}
+
+.mui-bar {
+    background-color: #4b4b4b;
+}
+
+.mui-bar>h1 {
+    color: #E7BE38;
+}
+
+.mui-bar>button {
+    color: #E7BE38 !important;
+}
+
+
+/*导航条下内容*/
+
+.mui-bar-nav ~ .mui-content {
+    padding-top: 90px;
+}
+
+
+/*输入框下划线的颜色*/
+
+.mui-input-group:after,
+.mui-table-view:after,
+.mui-table-view-cell:after,
+.mui-table-view:before {
+    background-color: #777777;
+}
+
+.mui-table-view-cell {
+    color: #fff;
+    background-color: #4b4b4b;
+}
+
+
+/*复选框颜色*/
+
+.mui-radio input[type='radio']:checked:before,
+.mui-checkbox input[type='checkbox']:checked:before {
+    color: #E7BE38;
+}
+
+
+/*黄色定制按钮*/
+
+.register-btn>button {
+    /*color: #000;
+    border: 1px solid #E7BE38;
+    background-color: #E7BE38;
+    width: 60%;
+    margin: 0px auto;
+    padding: 8px 0;*/
+    /*空心按钮*/
+    color: #E7BE38;
+    font-size: 14px;
+    border: 1px solid #E7BE38;
+    background-color: #797878;
+    width: 50%;
+    margin: 0px auto;
+    padding: 8px 0;
+    border-radius: 18px;
+}
+
+
+/*列表点击背景过渡*/
+
+.mui-table-view-cell>a:not(.mui-btn).mui-active {
+    background-color: #686868;
+    border-radius: 10px;
+}
+
+
+/*红星*/
+
+.red-star {
+    color: red;
+    margin-left: 5px;
+    vertical-align: middle;
+    display: none;
+}
+
+
+/*列表颜色、下划线*/
+
+.mui-input-group,
+.mui-input-group:before {
+    background-color: #4b4b4b;
+}
+
+.mui-input-group .mui-input-row:after {
+    background-color: #4b4b4b;
+    border-bottom: 1px solid #6a6a6a;
+}
+
+
+/*文字提醒*/
+
+.words-hint {
+    color: #fff;
+    font-size: 13px;
+    padding-top: 2%;
+    padding-left: 3%;
+}
+
+
+/*按钮*/
+
+.yellow-icon {
+    background-color: #E7BE38;
+    color: #000;
+    font-size: 13px;
+    padding: 6px 10px;
+    border-radius: 4px;
+}
+
+
+/*bar*/
+
+.mui-bar {
+    height: 70px;
+    padding-top: 25px;
+}
+
+button:disabled {
+    opacity: .8 !important;
+}
+
+
+/*按钮请求中*/
+
+.request {
+    color: #141414;
+    border: 1px solid #B2B2B2;
+    background-color: #B2B2B2;
+}
+
+
+/*加载…*/
+
+#circle {
+    z-index: 20;
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    margin-top: 60%;
+    display: none;
+}
+
+#circle>img {
+    z-index: 20;
+}
+
+
+/*jiedaibao*/
+
+.unregistered {
+    padding: 11px 15px;
+}
+
+.register_sort {
+    color: #bcbc00;
+    margin-bottom: 10px;
+}
+
+.dimension_code {
+    text-align: center;
+}
+
+.dimension_code>a {}
+
+.dimension_code>a>img {
+    width: 84%;
+    border-radius: 10px;
+}
+
+.dimension_code_msg {
+    text-align: center;
+}
+
+.dimension_code_msg>span {
+    background-color: #bcbc00;
+    padding: 1px 8px;
+    border-radius: 8px;
+    margin: 8px 0px;
+    color: #000;
+    font-size: 13px;
+}
+
+.notice {
+    padding: 8px 15px;
+    color: #fff;
+    font-size: 13px;
+    background-color: #4b4b4b;
+}
+
+.already_register>span {}
+
+.already_register>span:nth-child(1) {}
+
+.already_register>span:nth-child(2) {
+    float: right;
+    background-color: #bcbc00;
+    padding: 1px 8px;
+    border-radius: 4px;
+    color: #000;
+    font-size: 13px;
+}
+
+.register_for_example {}
+
+.registered {
+    padding: 11px 15px;
+}
+
+.registered>ul {
+    display: table;
+}
+
+.registered>ul>li {
+    float: left;
+    width: 50%;
+}
+
+.registered>ul>li>img {
+    width: 92%;
+    border-radius: 4px;
+}
+
+.img_example {
+    z-index: 21;
+    text-align: center;
+    position: absolute;
+    top: 0px;
+    display: none;
+}
+
+.img_example>img {
+    width: 72%;
+    margin-top: 8%;
+}
+
+
+/*遮罩层*/
+
+.mui-backdrop2 {
+    z-index: 20 !important;
+    display: none;
+}
+
+
+/*Upload two images/ news speedloan*/
+
+
+/*2016/11/01*/
+
+.hint_words {
+    color: #e7be38;
+    padding: 11px 15px 0px;
+}
+
+.block_list {
+    /* text-align: center; */
+    color: #fff;
+    padding: 11px 15px;
+}
+
+.block_title {
+    padding-bottom: 8px;
+    border-bottom: 1px solid #8c8c8c;
+}
+
+.block_step {
+    padding: 8px 2em;
+    border-bottom: 1px solid #8c8c8c;
+}
+
+.block_step1 {
+    margin-bottom: 4px;
+}
+
+.block_step2 {}
+
+.block_step>div {}
+
+.block_href {
+    padding: 8px 0px 2px;
+    width: 20%;
+    margin: 0px auto 6px;
+    border-bottom: 1px dotted #a2a2a2;
+    text-align: center;
+}
+
+.block_href>a {
+    color: #e7bc43;
+}
+
+.block_button {
+    padding: 8px 0px;
+    /*border-bottom: 1px solid #8c8c8c;*/
+    text-align: center;
+}
+
+.block_button>button {
+    color: #e7bc43 !important;
+    border: 1px solid #e7b652;
+}
+
+.block_img {
+    text-align: center;
+    padding: 10px 0px;
+}
+
+.block_img>img {
+    width: 56%;
+    border-radius: 2px;
+    padding: 4px 6px;
+    background-color: #8c8c8c;
+}
+
+.mui-content {
+    margin-top: 16px;
+}
+
+.borrow_sort {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.borrow_sort img {
+    width: 82%;
+    border-radius: 10px;
+}
+.block_wechat{padding: 6px 15px;}
+.block_wechat>div{}
+
+.part1 span{margin-left: 1.5em;}
+.part2{margin-top: 6px;}
+.part2>img{
+    width: 50%;
+    margin-left: 2em;
+    padding: 2px 3px;
+    border-radius: 0px;
+}
