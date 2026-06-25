@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>课程音频播放器 - 禅意极简</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root{--bg:#f5f3ee;--bg2:#ede9e1;--accent:#4a5548;--border:#c4bba8;--text:#3a3a3a;--muted:#7a7062}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Georgia,'Noto Serif SC',serif;background:var(--bg);color:var(--text);line-height:1.8;font-weight:300}
+.transition-slow{transition:all .7s ease}
+.chapter-item{border-bottom:1px solid rgba(196,187,168,.3)}
+.chapter-item:hover{background:rgba(237,233,225,.5)}
+.chapter-item.active{background:rgba(74,85,72,.08);border-left:2px solid var(--accent)}
+.chapter-item.locked{opacity:.45;cursor:not-allowed}
+.progress-track{height:2px;background:rgba(196,187,168,.4);position:relative;cursor:pointer}
+.progress-fill{height:100%;background:var(--accent);transition:width .3s linear}
+.btn-control{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;border:1px solid var(--border);color:var(--accent);background:transparent;cursor:pointer;transition:all .7s ease}
+.btn-control:hover{background:var(--accent);color:var(--bg)}
+.btn-control.primary{width:48px;height:48px;background:var(--accent);color:var(--bg);border:none}
+.btn-control.primary:hover{background:#3a4438}
+select{appearance:none;background:transparent;border:none;border-bottom:1px solid var(--border);font-family:inherit;font-size:1rem;color:var(--text);padding:8px 24px 8px 0;cursor:pointer;outline:none;width:100%}
+.volume-slider{-webkit-appearance:none;width:80px;height:2px;background:var(--border);outline:none}
+.volume-slider::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border-radius:50%;background:var(--accent);cursor:pointer}
+@media(max-width:768px){.layout{flex-direction:column}.sidebar{width:100%!important;max-height:40vh;overflow-y:auto}.main{width:100%!important}}
+</style>
+</head>
+<body class="min-h-screen flex flex-col">
+<header class="px-8 py-6 border-b" style="border-color:rgba(196,187,168,.3)">
+<h1 class="text-xl tracking-widest font-light" style="color:var(--accent)">闻见 · 音频</h1>
+</header>
+<div class="flex flex-1 layout" style="min-height:0">
+<aside class="sidebar overflow-y-auto p-6 border-r" style="width:320px;flex-shrink:0;border-color:rgba(196,187,168,.3)">
+<label class="block text-xs tracking-wider mb-2" style="color:var(--muted)">选择课程</label>
+<select id="courseSelect" class="mb-8 transition-slow">
+<option value="">— 请选择课程 —</option>
+<option value="c1">中国哲学导论</option>
+<option value="c2">宋代美学十讲</option>
+<option value="c3">禅宗与日常生活</option>
+</select>
+<div id="chapterList" class="space-y-0">
+<p class="text-sm py-8 text-center" style="color:var(--muted)">请先选择一门课程</p>
+</div>
+</aside>
+<main class="main flex-1 p-8 md:p-12 flex flex-col justify-center" style="min-width:0">
+<div id="emptyState" class="text-center py-20">
+<div class="w-16 h-16 mx-auto mb-6 rounded-full border flex items-center justify-center" style="border-color:var(--border);color:var(--muted)">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="10"/><polygon points="10,8 16,12 10,16" fill="currentColor" stroke="none"/></svg>
+</div>
+<p class="text-lg font-light tracking-wide" style="color:var(--muted)">选择课程，开始聆听</p>
+</div>
+<div id="playerArea" class="hidden max-w-xl mx-auto w-full">
+<div class="mb-10 text-center">
+<span id="courseTitle" class="text-xs tracking-widest uppercase block mb-3" style="color:var(--muted)"></span>
+<h2 id="sectionTitle" class="text-2xl md:text-3xl font-light tracking-wide" style="color:var(--accent)"></h2>
+<span id="previewBadge" class="hidden inline-block mt-3 text-xs px-3 py-1 border rounded-sm" style="border-color:var(--accent);color:var(--accent)">试听</span>
+</div>
+<div class="mb-10">
+<div class="progress-track rounded-full" id="progressTrack">
+<div class="progress-fill rounded-full" id="progressFill" style="width:0%"></div>
+</div>
+<div class="flex justify-between mt-2 text-xs" style="color:var(--muted)">
+<span id="currentTime">0:00</span>
+<span id="duration">0:00</span>
+</div>
+</div>
+<div class="flex items-center justify-center gap-6 mb-10">
+<button class="btn-control transition-slow" id="prevBtn" title="上一节">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15,18 9,12 15,6"/><line x1="9" y1="6" x2="9" y2="18"/></svg>
+</button>
+<button class="btn-control primary transition-slow" id="playBtn" title="播放/暂停">
+<svg id="playIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="8,5 19,12 8,19"/></svg>
+<svg id="pauseIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none" class="hidden"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
+</button>
+<button class="btn-control transition-slow" id="nextBtn" title="下一节">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="9,6 15,12 9,18"/><line x1="15" y1="6" x2="15" y2="18"/></svg>
+</button>
+</div>
+<div class="flex items-center justify-center gap-3">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--muted)"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+<input type="range" min="0" max="1" step="0.05" value="0.8" class="volume-slider" id="volumeSlider">
+</div>
+</div>
+</main>
+</div>
+<script>
+const courses={c1:{title:'中国哲学导论',unlocked:true,sections:[{id:'s1',title:'第一章 先秦诸子概说',preview:true,duration:1820},{id:'s2',title:'第二章 儒家思想核心',preview:true,duration:2100},{id:'s3',title:'第三章 道家与自然',preview:false,duration:1950},{id:'s4',title:'第四章 墨家与法家',preview:false,duration:1680}]},c2:{title:'宋代美学十讲',unlocked:false,sections:[{id:'s5',title:'第一讲 宋瓷之美',preview:true,duration:1500},{id:'s6',title:'第二讲 山水画意境',preview:true,duration:1720},{id:'s7',title:'第三讲 茶道与器物',preview:false,duration:1890},{id:'s8',title:'第四讲 园林营造法式',preview:false,duration:2040}]},c3:{title:'禅宗与日常生活',unlocked:true,sections:[{id:'s9',title:'引言 何为禅',preview:true,duration:900},{id:'s10',title:'第一章 坐禅入门',preview:false,duration:2400},{id:'s11',title:'第二章 日常行住坐卧',preview:false,duration:2100}]}};
+let currentCourse=null,currentSectionIdx=-1,isPlaying=false,audioProgress=0,progressTimer=null,volume=0.8;
+const $=id=>document.getElementById(id);
+function fmt(s){const m=Math.floor(s/60),sec=Math.floor(s%60);return m+':'+String(sec).padStart(2,'0')}
+function renderChapters(courseId){const c=courses[courseId];if(!c){$('chapterList').innerHTML='<p class="text-sm py-8 text-center" style="color:var(--muted)">请先选择一门课程</p>';return}
+$('chapterList').innerHTML=c.sections.map((s,i)=>{const locked=!c.unlocked&&!s.preview;const active=i===currentSectionIdx&&currentCourse===courseId;return`<div class="chapter-item px-4 py-4 cursor-pointer transition-slow flex items-center justify-between${active?' active':''}${locked?' locked':''}" data-idx="${i}" data-locked="${locked}"><span class="text-sm font-light">${s.title}</span>${s.preview&&!c.unlocked?'<span class="text-xs px-2 py-0.5 border rounded-sm" style="border-color:var(--accent);color:var(--accent);font-size:10px">试听</span>':''}${locked?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--muted)"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>':''}</div>`}).join('');
+$('chapterList').querySelectorAll('.chapter-item').forEach(el=>{el.addEventListener('click',()=>{if(el.dataset.locked==='true')return;playSection(courseId,parseInt(el.dataset.idx))})})}
+function playSection(courseId,idx){const c=courses[courseId];if(!c||!c.sections[idx])return;currentCourse=courseId;currentSectionIdx=idx;const s=c.sections[idx];
+$('emptyState').classList.add('hidden');$('playerArea').classList.remove('hidden');
+$('courseTitle').textContent=c.title;$('sectionTitle').textContent=s.title;
+$('previewBadge').classList.toggle('hidden',!(s.preview&&!c.unlocked));
+renderChapters(courseId);audioProgress=0;updateProgress();
+isPlaying=true;updatePlayIcon();startProgress(s.duration)}
+function updatePlayIcon(){$('playIcon').classList.toggle('hidden',isPlaying);$('pauseIcon').classList.toggle('hidden',!isPlaying)}
+function startProgress(dur){clearInterval(progressTimer);progressTimer=setInterval(()=>{if(!isPlaying)return;audioProgress+=1;if(audioProgress>=dur){audioProgress=dur;isPlaying=false;updatePlayIcon();clearInterval(progressTimer);autoNext()}updateProgress()},1000)}
+function updateProgress(){const c=courses[currentCourse];if(!c||currentSectionIdx<0)return;const dur=c.sections[currentSectionIdx].duration;const pct=dur>0?(audioProgress/dur)*100:0;
+$('progressFill').style.width=pct+'%';$('currentTime').textContent=fmt(audioProgress);$('duration').textContent=fmt(dur)}
+function autoNext(){const c=courses[currentCourse];if(!c)return;for(let i=currentSectionIdx+1;i<c.sections.length;i++){if(c.unlocked||c.sections[i].preview){playSection(currentCourse,i);return}}}
+$('playBtn').addEventListener('click',()=>{if(currentSectionIdx<0)return;isPlaying=!isPlaying;updatePlayIcon();if(isPlaying){const dur=courses[currentCourse].sections[currentSectionIdx].duration;startProgress(dur)}else clearInterval(progressTimer)});
+$('prevBtn').addEventListener('click',()=>{if(!currentCourse||currentSectionIdx<=0)return;for(let i=currentSectionIdx-1;i>=0;i--){const c=courses[currentCourse];if(c.unlocked||c.sections[i].preview){playSection(currentCourse,i);return}}});
+$('nextBtn').addEventListener('click',()=>{if(!currentCourse)return;const c=courses[currentCourse];for(let i=currentSectionIdx+1;i<c.sections.length;i++){if(c.unlocked||c.sections[i].preview){playSection(currentCourse,i);return}}});
+$('progressTrack').addEventListener('click',e=>{if(currentSectionIdx<0)return;const rect=e.currentTarget.getBoundingClientRect();const pct=(e.clientX-rect.left)/rect.width;const dur=courses[currentCourse].sections[currentSectionIdx].duration;audioProgress=Math.max(0,Math.min(dur,pct*dur));updateProgress()});
+$('volumeSlider').addEventListener('input',e=>{volume=parseFloat(e.target.value)});
+$('courseSelect').addEventListener('change',e=>{currentCourse=e.target.value;currentSectionIdx=-1;isPlaying=false;clearInterval(progressTimer);updatePlayIcon();
+if(currentCourse){$('emptyState').classList.add('hidden');$('playerArea').classList.remove('hidden');$('courseTitle').textContent=courses[currentCourse].title;$('sectionTitle').textContent='选择一个章节开始';$('previewBadge').classList.add('hidden');$('progressFill').style.width='0%';$('currentTime').textContent='0:00';$('duration').textContent='0:00'}else{$('emptyState').classList.remove('hidden');$('playerArea').classList.add('hidden')}
+renderChapters(currentCourse)});
+</script>
+</body>
+</html>

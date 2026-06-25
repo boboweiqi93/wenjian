@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>课程音频播放器 - 黑胶唱片</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root{--bg:#2a2420;--card:#f5efe6;--gold:#c9a96e;--text:#3a3028;--muted:#8a7e72}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:Georgia,'Times New Roman',serif;min-height:100vh}
+@keyframes spin-slow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes needle-swing{0%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}100%{transform:rotate(-5deg)}}
+.vinyl-spin{animation:spin-slow 8s linear infinite}
+.vinyl-paused{animation-play-state:paused}
+.needle{animation:needle-swing 3s ease-in-out infinite;transform-origin:top center}
+.needle-paused{animation-play-state:paused}
+.chapter-item{transition:all .3s ease}
+.chapter-item:hover{background:rgba(201,169,110,.1)}
+.chapter-active{border-left:3px solid var(--gold);background:rgba(201,169,110,.08)}
+.locked{opacity:.5;pointer-events:none}
+.preview-badge{border:1px solid var(--gold);color:var(--gold)}
+.progress-ring{transition:stroke-dashoffset .3s ease}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--gold);border-radius:2px}
+</style>
+</head>
+<body class="flex flex-col items-center min-h-screen p-4 md:p-8">
+<!-- Header -->
+<header class="w-full max-w-4xl mb-8 text-center">
+<h1 class="text-3xl md:text-4xl font-serif tracking-widest" style="color:var(--gold)">闻见 · 音频书院</h1>
+<p class="mt-2 text-sm" style="color:var(--muted)">沉浸式课程聆听体验</p>
+</header>
+
+<!-- Course Selector -->
+<div class="w-full max-w-4xl mb-8">
+<select id="courseSelect" class="w-full p-4 rounded-lg border-2 font-serif text-lg outline-none focus:border-[#c9a96e] transition-colors" style="background:var(--card);border-color:var(--gold);color:var(--text)">
+<option value="">— 选择已开通课程 —</option>
+<option value="1">《禅修入门》· 已开通</option>
+<option value="2">《茶道美学》· 已开通</option>
+<option value="3">《书法鉴赏》· 试听</option>
+</select>
+</div>
+
+<!-- Main Player -->
+<main class="w-full max-w-4xl flex flex-col lg:flex-row gap-8 items-start">
+<!-- Vinyl Section -->
+<div class="flex-1 flex flex-col items-center">
+<div class="relative w-64 h-64 md:w-80 md:h-80 mb-6">
+<!-- Tonearm -->
+<div id="needle" class="absolute -top-4 right-8 w-2 h-24 bg-gradient-to-b from-gray-600 to-gray-400 rounded-full z-20 needle needle-paused" style="transform-origin:top center"></div>
+<!-- Vinyl Record -->
+<div id="vinyl" class="w-full h-full rounded-full relative vinyl-spin vinyl-paused" style="background:radial-gradient(circle,#1a1612 30%,#2a2420 31%,#1a1612 32%,#2a2420 50%,#1a1612 51%,#2a2420 70%,#1a1612 71%,#2a2420 100%);box-shadow:0 0 40px rgba(0,0,0,.5),inset 0 0 20px rgba(0,0,0,.3)">
+<!-- Label -->
+<div class="absolute inset-0 m-auto w-24 h-24 md:w-32 md:h-32 rounded-full flex items-center justify-center text-center p-2" style="background:var(--gold)">
+<span class="text-xs md:text-sm font-serif leading-tight" style="color:var(--bg)" id="vinylLabel">等待播放</span>
+</div>
+<!-- Grooves -->
+<div class="absolute inset-0 rounded-full border border-white/5"></div>
+<div class="absolute inset-4 rounded-full border border-white/5"></div>
+<div class="absolute inset-8 rounded-full border border-white/5"></div>
+</div>
+</div>
+<!-- Now Playing Info -->
+<div class="text-center mb-6">
+<h2 id="currentTitle" class="text-xl md:text-2xl font-serif mb-1" style="color:var(--card)">请选择课程开始聆听</h2>
+<p id="currentChapter" class="text-sm" style="color:var(--muted)">—</p>
+</div>
+<!-- Controls -->
+<div class="flex items-center gap-6 mb-4">
+<button onclick="prevChapter()" class="p-3 rounded-full hover:bg-white/10 transition" style="color:var(--gold)">
+<svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+</button>
+<button id="playBtn" onclick="togglePlay()" class="w-16 h-16 rounded-full flex items-center justify-center transition-transform hover:scale-105 active:scale-95" style="background:var(--gold);color:var(--bg)">
+<svg id="playIcon" width="28" height="28" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+</button>
+<button onclick="nextChapter()" class="p-3 rounded-full hover:bg-white/10 transition" style="color:var(--gold)">
+<svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+</button>
+</div>
+<!-- Progress -->
+<div class="w-full max-w-xs mb-4">
+<div class="flex justify-between text-xs mb-1" style="color:var(--muted)">
+<span id="currentTime">0:00</span><span id="duration">0:00</span>
+</div>
+<div class="w-full h-1.5 rounded-full cursor-pointer relative" style="background:rgba(245,239,230,.2)" onclick="seekAudio(event)">
+<div id="progressBar" class="h-full rounded-full transition-all duration-300" style="background:var(--gold);width:0%"></div>
+</div>
+</div>
+<!-- Volume -->
+<div class="flex items-center gap-2">
+<svg width="16" height="16" fill="var(--muted)" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+<input type="range" min="0" max="100" value="80" class="w-24 accent-[#c9a96e]" oninput="setVolume(this.value)">
+</div>
+</div>
+
+<!-- Chapter List -->
+<aside class="w-full lg:w-80 rounded-xl overflow-hidden" style="background:var(--card)">
+<div class="p-4 border-b" style="border-color:rgba(201,169,110,.3)">
+<h3 class="font-serif text-lg" style="color:var(--text)">章节目录</h3>
+</div>
+<div id="chapterList" class="max-h-96 overflow-y-auto p-2 space-y-1">
+<div class="p-4 text-center text-sm" style="color:var(--muted)">请先选择课程</div>
+</div>
+</aside>
+</main>
+
+<script>
+const chapters=[
+{id:1,title:'第一章 · 静心准备',duration:'12:30',preview:true,unlocked:true},
+{id:2,title:'第二章 · 呼吸法门',duration:'18:45',preview:false,unlocked:true},
+{id:3,title:'第三章 · 观照内心',duration:'22:10',preview:false,unlocked:true},
+{id:4,title:'第四章 · 行禅实践',duration:'15:20',preview:false,unlocked:false},
+{id:5,title:'第五章 · 日常修行',duration:'20:00',preview:false,unlocked:false}
+];
+let currentIdx=0,isPlaying=false,audioProgress=0,progressTimer=null;
+
+function renderChapters(){
+const list=document.getElementById('chapterList');
+list.innerHTML=chapters.map((c,i)=>`
+<div class="chapter-item flex items-center gap-3 p-3 rounded-lg cursor-pointer ${i===currentIdx?'chapter-active':''} ${!c.unlocked?'locked':''}" onclick="selectChapter(${i})">
+<div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-serif flex-shrink-0" style="background:${i===currentIdx?'var(--gold)':'rgba(201,169,110,.15)'};color:${i===currentIdx?'var(--bg)':'var(--text)'}">${i+1}</div>
+<div class="flex-1 min-w-0">
+<div class="text-sm font-serif truncate" style="color:var(--text)">${c.title}</div>
+<div class="text-xs mt-0.5" style="color:var(--muted)">${c.duration}</div>
+</div>
+${c.preview&&!c.unlocked?'<span class="preview-badge text-xs px-2 py-0.5 rounded-full flex-shrink-0">试听</span>':''}
+${!c.unlocked?'<svg width="14" height="14" fill="var(--muted)" viewBox="0 0 24 24" class="flex-shrink-0"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>':''}
+</div>`).join('');
+}
+
+function selectChapter(idx){
+if(!chapters[idx].unlocked)return;
+currentIdx=idx;audioProgress=0;
+document.getElementById('currentTitle').textContent='禅修入门';
+document.getElementById('currentChapter').textContent=chapters[idx].title;
+document.getElementById('vinylLabel').textContent=chapters[idx].title.slice(0,6);
+renderChapters();
+if(!isPlaying)togglePlay();
+}
+
+function togglePlay(){
+isPlaying=!isPlaying;
+const vinyl=document.getElementById('vinyl');
+const needle=document.getElementById('needle');
+const icon=document.getElementById('playIcon');
+if(isPlaying){
+vinyl.classList.remove('vinyl-paused');needle.classList.remove('needle-paused');
+icon.innerHTML='<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+progressTimer=setInterval(()=>{audioProgress=Math.min(audioProgress+0.5,100);updateProgress();if(audioProgress>=100)nextChapter()},200);
+}else{
+vinyl.classList.add('vinyl-paused');needle.classList.add('needle-paused');
+icon.innerHTML='<path d="M8 5v14l11-7z"/>';
+clearInterval(progressTimer);
+}
+}
+
+function prevChapter(){if(currentIdx>0)selectChapter(currentIdx-1)}
+function nextChapter(){if(currentIdx<chapters.length-1&&chapters[currentIdx+1].unlocked)selectChapter(currentIdx+1)}
+function updateProgress(){
+document.getElementById('progressBar').style.width=audioProgress+'%';
+const total=parseInt(chapters[currentIdx]?.duration?.split(':')[0]||0)*60+parseInt(chapters[currentIdx]?.duration?.split(':')[1]||0);
+const cur=Math.floor(total*audioProgress/100);
+document.getElementById('currentTime').textContent=Math.floor(cur/60)+':'+String(cur%60).padStart(2,'0');
+document.getElementById('duration').textContent=chapters[currentIdx]?.duration||'0:00';
+}
+function seekAudio(e){const rect=e.currentTarget.getBoundingClientRect();audioProgress=(e.clientX-rect.left)/rect.width*100;updateProgress()}
+function setVolume(v){/* volume control placeholder */}
+
+document.getElementById('courseSelect').addEventListener('change',function(){
+if(this.value){renderChapters();selectChapter(0)}
+});
+</script>
+</body>
+</html>

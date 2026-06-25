@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>雾霭质感音频播放器</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(160deg, #2a3240 0%, #1e2530 40%, #252d3a 100%);
+  min-height: 100vh;
+  color: #c8cdd5;
+  position: relative;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 24px 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 32px;
+}
+.logo {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 3px;
+  color: #8b9bb4;
+}
+.course-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.nav-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: #7a8a9e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.4s ease;
+}
+.nav-btn:hover { background: rgba(255,255,255,0.06); color: #a0b0c4; }
+.course-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px;
+  color: #8b9bb4;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+.player-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 0;
+}
+.section-label {
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #5a6a7e;
+  margin-bottom: 16px;
+}
+.track-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px;
+  font-weight: 300;
+  color: #d0d8e4;
+  text-align: center;
+  line-height: 1.6;
+  letter-spacing: 1px;
+  margin-bottom: 40px;
+  text-shadow: 0 2px 20px rgba(100,140,180,0.15);
+}
+.progress-wrap {
+  width: 100%;
+  margin-bottom: 32px;
+  position: relative;
+}
+.progress-bar {
+  width: 100%;
+  height: 3px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+  overflow: visible;
+}
+.progress-fill {
+  height: 100%;
+  width: 35%;
+  background: linear-gradient(90deg, #5a7a9a, #7a9ab8);
+  border-radius: 2px;
+  position: relative;
+  box-shadow: 0 0 12px rgba(100,150,200,0.4), 0 0 4px rgba(100,150,200,0.6);
+  transition: width 0.3s ease;
+}
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  background: #a0c0e0;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(120,170,220,0.6);
+}
+.time-display {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-size: 10px;
+  color: #4a5a6e;
+  letter-spacing: 1px;
+}
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+.ctrl-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: transparent;
+  color: #7a8a9e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.4s ease;
+}
+.ctrl-btn:hover { border-color: rgba(255,255,255,0.12); color: #a0b0c4; }
+.play-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, rgba(90,122,154,0.3), rgba(70,100,130,0.2));
+  color: #b0c8e0;
+  box-shadow: 0 4px 24px rgba(60,100,140,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+  cursor: pointer;
+  transition: all 0.4s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.play-btn:hover {
+  background: linear-gradient(135deg, rgba(90,122,154,0.4), rgba(70,100,130,0.3));
+  box-shadow: 0 6px 32px rgba(60,100,140,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+  transform: scale(1.05);
+}
+.bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+.vol-wrap { display: flex; align-items: center; gap: 8px; }
+.vol-icon { color: #5a6a7e; cursor: pointer; }
+.vol-slider {
+  width: 80px;
+  height: 2px;
+  -webkit-appearance: none;
+  background: rgba(255,255,255,0.08);
+  border-radius: 1px;
+  outline: none;
+}
+.vol-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  background: #7a9ab8;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(100,150,200,0.4);
+}
+.list-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: transparent;
+  color: #6a7a8e;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.list-btn:hover { border-color: rgba(255,255,255,0.12); color: #8a9aae; }
+.playlist {
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+  display: none;
+}
+.playlist.show { display: block; }
+.pl-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.pl-title { font-size: 10px; letter-spacing: 2px; color: #5a6a7e; }
+.pl-close { color: #5a6a7e; cursor: pointer; padding: 4px; }
+.chapter-group { margin-bottom: 8px; }
+.chapter-name {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #4a5a6e;
+  padding: 6px 0;
+}
+.track-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  cursor: pointer;
+  transition: background 0.3s ease;
+  border-radius: 4px;
+}
+.track-item:hover { background: rgba(255,255,255,0.03); }
+.track-item.active {
+  background: rgba(90,122,154,0.08);
+  border-left: 2px solid #6a8aaa;
+}
+.track-name { font-size: 12px; color: #8a9aae; font-weight: 300; }
+.track-item.active .track-name { color: #a0b8d0; }
+.preview-tag {
+  font-size: 8px;
+  padding: 2px 6px;
+  border: 1px solid rgba(100,150,200,0.3);
+  border-radius: 3px;
+  color: #6a8aaa;
+}
+@media (min-width: 768px) {
+  .container { max-width: 480px; padding: 40px 32px; }
+  .track-title { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="header">
+    <div class="logo">闻见 · 音频</div>
+    <div class="course-nav">
+      <button class="nav-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <span class="course-title">禅修入门</span>
+      <button class="nav-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18l6-6-6-6"/></svg></button>
+    </div>
+  </header>
+
+  <div class="player-area">
+    <div class="section-label">第一章 · 呼吸觉察</div>
+    <h1 class="track-title">安住当下的力量</h1>
+
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill"></div></div>
+      <div class="time-display"><span>3:42</span><span>12:30</span></div>
+    </div>
+
+    <div class="controls">
+      <button class="ctrl-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 20L9 12l10-8v16z"/><line x1="5" y1="19" x2="5" y2="5"/></svg></button>
+      <button class="play-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+      <button class="ctrl-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 4l10 8-10 8V4z"/><line x1="19" y1="5" x2="19" y2="19"/></svg></button>
+    </div>
+
+    <div class="bottom-bar">
+      <div class="vol-wrap">
+        <svg class="vol-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="0.7">
+      </div>
+      <button class="list-btn" onclick="document.querySelector('.playlist').classList.toggle('show')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        列表
+      </button>
+    </div>
+
+    <div class="playlist">
+      <div class="pl-header">
+        <span class="pl-title">章节列表</span>
+        <span class="pl-close" onclick="document.querySelector('.playlist').classList.remove('show')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+      </div>
+      <div class="chapter-group">
+        <div class="chapter-name">第一章 · 呼吸觉察</div>
+        <div class="track-item active"><span class="track-name">安住当下的力量</span></div>
+        <div class="track-item"><span class="track-name">观察呼吸的节奏</span><span class="preview-tag">试听</span></div>
+        <div class="track-item"><span class="track-name">身体扫描练习</span></div>
+      </div>
+      <div class="chapter-group">
+        <div class="chapter-name">第二章 · 情绪接纳</div>
+        <div class="track-item"><span class="track-name">与情绪共处</span></div>
+        <div class="track-item"><span class="track-name">慈悲心的培养</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

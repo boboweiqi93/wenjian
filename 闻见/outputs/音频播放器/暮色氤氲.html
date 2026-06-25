@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>暮色氤氲 - 音频播放器</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Serif SC', serif;
+    min-height: 100vh;
+    background: linear-gradient(165deg, #3d2b1f 0%, #5c3d2e 30%, #7a5240 60%, #4a3228 100%);
+    color: #e8ddd0;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* 纸张纹理叠加 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* 暖光晕染 */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -20%;
+    right: -10%;
+    width: 60vw;
+    height: 60vw;
+    background: radial-gradient(circle, rgba(210,160,100,0.12) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 430px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 0 24px;
+  }
+
+  /* 顶部标题 */
+  header {
+    padding: 48px 0 32px;
+    text-align: center;
+  }
+
+  header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-style: italic;
+    font-size: 14px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: rgba(232,221,208,0.5);
+  }
+
+  /* 课程信息区 */
+  .course-info {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .course-title {
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: rgba(232,221,208,0.4);
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 300;
+    line-height: 1.4;
+    color: #f0e6d8;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
+
+  /* 进度条区域 */
+  .progress-area {
+    margin-bottom: 36px;
+  }
+
+  .progress-bar {
+    height: 2px;
+    background: rgba(232,221,208,0.12);
+    border-radius: 1px;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 35%;
+    background: linear-gradient(90deg, #c9956b, #dbb896);
+    border-radius: 1px;
+    position: relative;
+    transition: width 0.3s ease;
+  }
+
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: -3px;
+    top: -2px;
+    width: 6px;
+    height: 6px;
+    background: #dbb896;
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(219,184,150,0.5);
+  }
+
+  .time-display {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: rgba(232,221,208,0.35);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 播放控制 */
+  .controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    margin-bottom: 36px;
+  }
+
+  .btn-control {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: rgba(232,221,208,0.6);
+    transition: all 0.4s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-control:hover { color: #f0e6d8; }
+
+  .btn-control svg { width: 20px; height: 20px; fill: currentColor; }
+
+  .btn-play {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, rgba(201,149,107,0.2), rgba(201,149,107,0.08));
+    border: 1px solid rgba(201,149,107,0.25);
+    color: #dbb896;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.08);
+    transition: all 0.4s ease;
+  }
+
+  .btn-play:hover {
+    background: linear-gradient(145deg, rgba(201,149,107,0.3), rgba(201,149,107,0.12));
+    box-shadow: 0 6px 28px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.12);
+    transform: scale(1.04);
+  }
+
+  .btn-play svg { width: 24px; height: 24px; margin-left: 2px; }
+
+  /* 音量与列表按钮 */
+  .secondary-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  .volume-slider {
+    -webkit-appearance: none;
+    width: 80px;
+    height: 2px;
+    background: rgba(232,221,208,0.12);
+    border-radius: 1px;
+    outline: none;
+  }
+
+  .volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 10px;
+    height: 10px;
+    background: #c9956b;
+    border-radius: 50%;
+    box-shadow: 0 0 6px rgba(201,149,107,0.4);
+    cursor: pointer;
+  }
+
+  .btn-list {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(232,221,208,0.12);
+    background: rgba(232,221,208,0.04);
+    color: rgba(232,221,208,0.5);
+    font-size: 11px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Noto Serif SC', serif;
+  }
+
+  .btn-list:hover {
+    border-color: rgba(201,149,107,0.3);
+    color: #dbb896;
+    background: rgba(201,149,107,0.06);
+  }
+
+  .btn-list svg { width: 14px; height: 14px; fill: currentColor; }
+
+  /* 章节列表 */
+  .playlist {
+    flex: 1;
+    border-top: 1px solid rgba(232,221,208,0.06);
+    padding-top: 20px;
+    padding-bottom: 40px;
+  }
+
+  .playlist-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .playlist-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(232,221,208,0.3);
+  }
+
+  .chapter-group { margin-bottom: 8px; }
+
+  .chapter-name {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(232,221,208,0.25);
+    padding: 8px 0 4px;
+  }
+
+  .track-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 8px;
+    border-bottom: 1px solid rgba(232,221,208,0.04);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+  }
+
+  .track-item:hover {
+    background: rgba(201,149,107,0.05);
+    box-shadow: 0 0 12px rgba(201,149,107,0.04);
+  }
+
+  .track-item.active {
+    background: rgba(201,149,107,0.08);
+    border-left: 2px solid #c9956b;
+  }
+
+  .track-title {
+    font-size: 13px;
+    font-weight: 300;
+    color: rgba(232,221,208,0.7);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 12px;
+  }
+
+  .track-item.active .track-title { color: #dbb896; }
+
+  .track-badge {
+    font-size: 8px;
+    letter-spacing: 1px;
+    padding: 2px 6px;
+    border: 1px solid rgba(201,149,107,0.3);
+    border-radius: 2px;
+    color: #c9956b;
+    flex-shrink: 0;
+  }
+
+  /* 播放动画条 */
+  .playing-indicator {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 12px;
+    flex-shrink: 0;
+  }
+
+  .playing-indicator span {
+    width: 2px;
+    background: #c9956b;
+    border-radius: 1px;
+    animation: pulse 1s ease-in-out infinite;
+  }
+
+  .playing-indicator span:nth-child(1) { height: 40%; animation-delay: 0s; }
+  .playing-indicator span:nth-child(2) { height: 80%; animation-delay: 0.2s; }
+  .playing-indicator span:nth-child(3) { height: 55%; animation-delay: 0.4s; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  /* 底部渐变遮罩 */
+  .bottom-fade {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: linear-gradient(to top, #3d2b1f, transparent);
+    pointer-events: none;
+    z-index: 2;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>闻见 · 音频</h1>
+  </header>
+
+  <div class="course-info">
+    <div class="course-title">中国古典文学赏析</div>
+    <div class="section-title">第三讲 · 唐诗的意境与韵味</div>
+  </div>
+
+  <div class="progress-area">
+    <div class="progress-bar">
+      <div class="progress-fill"></div>
+    </div>
+    <div class="time-display">
+      <span>12:34</span>
+      <span>36:20</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn-control">
+      <svg viewBox="0 0 24 24"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/></svg>
+    </button>
+    <button class="btn-play">
+      <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+    </button>
+    <button class="btn-control">
+      <svg viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
+    </button>
+  </div>
+
+  <div class="secondary-controls">
+    <svg style="width:16px;height:16px;fill:rgba(232,221,208,0.4)" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+    <input type="range" class="volume-slider" min="0" max="1" step="0.05" value="0.7">
+    <button class="btn-list">
+      <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+      <span>列表</span>
+    </button>
+  </div>
+
+  <div class="playlist">
+    <div class="playlist-header">
+      <span class="playlist-label">章节列表</span>
+    </div>
+
+    <div class="chapter-group">
+      <div class="chapter-name">第一章 · 导论</div>
+      <div class="track-item">
+        <span class="track-title">课程概述与学习方法</span>
+        <span class="track-badge">试听</span>
+      </div>
+      <div class="track-item">
+        <span class="track-title">古典文学的历史脉络</span>
+      </div>
+    </div>
+
+    <div class="chapter-group">
+      <div class="chapter-name">第二章 · 诗经</div>
+      <div class="track-item">
+        <span class="track-title">风雅颂的分类与特征</span>
+      </div>
+      <div class="track-item active">
+        <span class="track-title">第三讲 · 唐诗的意境与韵味</span>
+        <div class="playing-indicator">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="track-item">
+        <span class="track-title">李杜诗风比较赏析</span>
+      </div>
+    </div>
+
+    <div class="chapter-group">
+      <div class="chapter-name">第三章 · 宋词</div>
+      <div class="track-item">
+        <span class="track-title">婉约与豪放的艺术境界</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-fade"></div>
+</body>
+</html>

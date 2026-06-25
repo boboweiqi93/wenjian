@@ -1,0 +1,131 @@
+# 通用
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*.bak
+*.orig
+
+# 环境变量与密钥
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 编辑器与 IDE
+.idea/
+.vscode/
+
+# Node.js / JavaScript / TypeScript
+node_modules/
+dist/
+build/
+.next/
+.nuxt/
+.cache/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+ENV/
+pip-wheel-metadata/
+*.egg-info/
+.coverage
+htmlcov/
+
+# Java / Kotlin
+target/
+*.class
+*.jar
+*.war
+*.ear
+.gradle/
+out/
+
+# Go
+bin/
+*.test
+coverage.out
+
+# C / C++
+*.o
+*.obj
+*.so
+*.a
+*.lib
+*.dll
+*.dylib
+*.exe
+CMakeFiles/
+CMakeCache.txt
+cmake-build-*/
+compile_commands.json
+Makefile
+
+# Rust
+target/
+
+# C#
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+bin/
+obj/
+
+# Ruby
+.bundle/
+vendor/bundle/
+
+# PHP / Composer
+vendor/
+
+# other
+.stats
+.config
+.accesslog
+
+/vendor/
+
+tmp/
+
+# Trae / Meoo internal
+.meoo/
+.microcompact/
+.plan/
+.todo/
+.uploads/
+
+# Skills (not part of project source)
+skills/
+
+# Test
+test/
+
+# Lock files (exclude from repo)
+pnpm-lock.yaml
+
+.meoo
+/core
+/.core.hmbtNy
+/.core.dump

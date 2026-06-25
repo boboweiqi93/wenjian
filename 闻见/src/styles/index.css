@@ -1,0 +1,662 @@
+/* ============================================
+   Golden Time Design System — CSS Variables
+   ============================================ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* Golden Time — Light Mode */
+  --background: #fbfaf9;
+  --card: #fbfaf9;
+  --popover: #fbfaf9;
+  --foreground: #3b352b;
+  --card-foreground: #3b352b;
+  --popover-foreground: #3b352b;
+  --muted: #eae6db;
+  --muted-foreground: #978365;
+  --primary: #3b352b;
+  --primary-foreground: #fbfaf9;
+  --secondary: #9b965f;
+  --secondary-foreground: #fbfaf9;
+  --accent: #cbc0aa;
+  --accent-foreground: #574d42;
+  --destructive: #ef4444;
+  --destructive-foreground: #fafafa;
+  --border: #e1dccf;
+  --input: #eae6db;
+  --ring: #3b352b;
+  --radius: 2rem;
+  --font-sans: 'Fraunces', 'Noto Serif SC', 'Source Han Serif SC', ui-serif, serif;
+  --font-serif: 'Fraunces', 'Noto Serif SC', 'Source Han Serif SC', ui-serif, serif;
+  --font-mono: ui-monospace, monospace;
+  --tracking-normal: 0.01em;
+  --spacing: 0.3rem;
+
+  /* Shadows — intentionally quiet */
+  --shadow-xs: 0px 2px 4px rgba(59, 53, 43, 0);
+  --shadow-sm: 0px 2px 4px 0px rgba(59, 53, 43, 0), 0px 1px 2px -1px rgba(59, 53, 43, 0);
+  --shadow-md: 0px 4px 6px -1px rgba(59, 53, 43, 0), 0px 2px 4px -2px rgba(59, 53, 43, 0);
+  --shadow-lg: 0px 10px 15px -3px rgba(59, 53, 43, 0), 0px 4px 6px -4px rgba(59, 53, 43, 0);
+  --shadow-xl: 0px 20px 25px -5px rgba(59, 53, 43, 0), 0px 8px 10px -6px rgba(59, 53, 43, 0);
+
+  /* Chart palette */
+  --chart-1: #d6d5c2;
+  --chart-2: #5e4545;
+  --chart-3: #b0b3a2;
+  --chart-4: #9b965f;
+  --chart-5: #f79b45;
+
+  /* Sidebar */
+  --sidebar: #fbfaf9;
+  --sidebar-foreground: #3b352b;
+  --sidebar-primary: #3b352b;
+  --sidebar-primary-foreground: #fbfaf9;
+  --sidebar-accent: #cbc0aa;
+  --sidebar-accent-foreground: #3b352b;
+  --sidebar-border: #e1dccf;
+  --sidebar-ring: #3b352b;
+
+  /* Legacy compatibility aliases — map old names to new tokens */
+  --color-bg-primary: var(--background);
+  --color-bg-secondary: var(--muted);
+  --color-bg-tertiary: var(--accent);
+  --color-text-primary: var(--foreground);
+  --color-text-secondary: var(--muted-foreground);
+  --color-accent: var(--secondary);
+  --color-accent-light: var(--accent);
+  --color-border: var(--border);
+  --color-wood: var(--muted-foreground);
+  --text-muted: var(--muted-foreground);
+  --progress-bg: var(--muted);
+  --mist-gradient: var(--background);
+  --pearl-gradient: var(--background);
+  --pearl-shadow: var(--shadow-sm);
+  --pearl-hover-shadow: var(--shadow-md);
+
+  /* Content colors for Markdown rendering */
+  --color-content-heading: var(--foreground);
+  --color-content-text: var(--card-foreground);
+  --color-content-link: var(--secondary);
+  --color-content-quote-border: var(--chart-3);
+  --color-content-quote-bg: rgba(176, 179, 162, 0.08);
+  --color-content-code-bg: var(--muted);
+  --color-content-code-text: var(--foreground);
+  --color-content-table-header: var(--muted);
+  --color-content-table-border: var(--border);
+
+  /* Auxiliary palette */
+  --color-sage: #b0b3a2;
+  --color-lavender: #c8b8d0;
+  --color-rose: #d0b8b8;
+  --color-mist-blue: #b0b8c0;
+
+  /* Semantic colors */
+  --color-success: #7aa88c;
+  --color-warning: #c8a878;
+  --color-danger: var(--destructive);
+
+  /* Spacing system — 0.3rem base */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2.5rem;
+  --spacing-xl: 4rem;
+  --spacing-2xl: 6rem;
+
+  /* Radius — unified large radius */
+  --radius-sm: var(--radius);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --radius-full: 9999px;
+}
+
+/* Dark Mode */
+.dark {
+  --background: #060201;
+  --card: #060201;
+  --popover: #060201;
+  --foreground: #e3dfd6;
+  --card-foreground: #e3dfd6;
+  --popover-foreground: #e3dfd6;
+  --muted: #1c1917;
+  --muted-foreground: #a89c8a;
+  --primary: #e3dfd6;
+  --primary-foreground: #060201;
+  --secondary: #605039;
+  --secondary-foreground: #e3dfd6;
+  --accent: #806a4d;
+  --accent-foreground: #e3dfd6;
+  --destructive: #ef4444;
+  --destructive-foreground: #fafafa;
+  --border: #292524;
+  --input: #1c1917;
+  --ring: #e3dfd6;
+
+  --shadow-xs: 0px 2px 4px rgba(0, 0, 0, 0);
+  --shadow-sm: 0px 2px 4px 0px rgba(0, 0, 0, 0), 0px 1px 2px -1px rgba(0, 0, 0, 0);
+  --shadow-md: 0px 4px 6px -1px rgba(0, 0, 0, 0), 0px 2px 4px -2px rgba(0, 0, 0, 0);
+  --shadow-lg: 0px 10px 15px -3px rgba(0, 0, 0, 0), 0px 4px 6px -4px rgba(0, 0, 0, 0);
+  --shadow-xl: 0px 20px 25px -5px rgba(0, 0, 0, 0), 0px 8px 10px -6px rgba(0, 0, 0, 0);
+
+  --chart-1: #d6d5c2;
+  --chart-2: #5e4545;
+  --chart-3: #b0b3a2;
+  --chart-4: #9b965f;
+  --chart-5: #f79b45;
+
+  --sidebar: #060201;
+  --sidebar-foreground: #e3dfd6;
+  --sidebar-primary: #e3dfd6;
+  --sidebar-primary-foreground: #060201;
+  --sidebar-accent: #806a4d;
+  --sidebar-accent-foreground: #e3dfd6;
+  --sidebar-border: #292524;
+  --sidebar-ring: #e3dfd6;
+
+  /* Legacy compatibility aliases — dark mode */
+  --color-bg-primary: var(--background);
+  --color-bg-secondary: var(--muted);
+  --color-bg-tertiary: var(--accent);
+  --color-text-primary: var(--foreground);
+  --color-text-secondary: var(--muted-foreground);
+  --color-accent: var(--secondary);
+  --color-accent-light: var(--accent);
+  --color-border: var(--border);
+  --color-wood: var(--muted-foreground);
+  --text-muted: var(--muted-foreground);
+  --progress-bg: var(--muted);
+  --mist-gradient: var(--background);
+  --pearl-gradient: var(--background);
+  --pearl-shadow: var(--shadow-sm);
+  --pearl-hover-shadow: var(--shadow-md);
+
+  --color-content-heading: var(--foreground);
+  --color-content-text: var(--card-foreground);
+  --color-content-link: var(--secondary);
+  --color-content-quote-border: var(--chart-3);
+  --color-content-quote-bg: rgba(176, 179, 162, 0.06);
+  --color-content-code-bg: var(--muted);
+  --color-content-code-text: var(--foreground);
+  --color-content-table-header: var(--muted);
+  --color-content-table-border: var(--border);
+
+  --color-sage: #7a8a72;
+  --color-lavender: #8a7a90;
+  --color-rose: #a08888;
+  --color-mist-blue: #7a8a92;
+
+  --color-success: #6a9a7a;
+  --color-warning: #b8a070;
+  --color-danger: var(--destructive);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  background: var(--background);
+  background-attachment: fixed;
+  color: var(--foreground);
+  line-height: 1.8;
+  letter-spacing: var(--tracking-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  position: relative;
+}
+
+/* Remove noise texture overlay — Golden Time is clean paper */
+body::before {
+  display: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: var(--tracking-normal);
+  line-height: 1.4;
+}
+
+/* ============================================
+   Golden Time Component Styles
+   ============================================ */
+
+/* Primary button — editorial, warm, generous radius */
+.zen-btn {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  letter-spacing: var(--tracking-normal);
+  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 8);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.zen-btn::before {
+  display: none;
+}
+
+.zen-btn:hover {
+  opacity: 0.9;
+  box-shadow: var(--shadow-md);
+}
+
+.zen-btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+
+.zen-btn-primary:hover {
+  opacity: 0.9;
+}
+
+.zen-btn-ghost {
+  background: transparent;
+  color: var(--muted-foreground);
+  border-color: var(--border);
+  box-shadow: none;
+}
+
+.zen-btn-ghost:hover {
+  background: var(--muted);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+
+/* Card — warm neutral surface, spacious */
+.zen-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: calc(var(--spacing) * 8);
+  transition: all 0.3s ease;
+}
+
+.zen-card:hover {
+  border-color: var(--accent);
+}
+
+/* Elevated card variant */
+.zen-card-elevated {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: calc(var(--spacing) * 8);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.zen-card-elevated:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent);
+}
+
+/* Input — quiet border, clear focus */
+.zen-input {
+  width: 100%;
+  padding: calc(var(--spacing) * 3) 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  letter-spacing: var(--tracking-normal);
+  color: var(--foreground);
+  transition: all 0.3s ease;
+}
+
+.zen-input:focus {
+  outline: none;
+  border-bottom-color: var(--ring);
+  box-shadow: 0 2px 0 0 var(--ring);
+}
+
+.zen-input::placeholder {
+  color: var(--muted-foreground);
+  opacity: 0.7;
+}
+
+/* Navigation item — sidebar style */
+.zen-nav-item {
+  position: relative;
+  padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 5);
+  color: var(--muted-foreground);
+  font-size: 0.9375rem;
+  letter-spacing: var(--tracking-normal);
+  transition: all 0.3s ease;
+  border-radius: var(--radius);
+}
+
+.zen-nav-item:hover,
+.zen-nav-item.active {
+  color: var(--sidebar-accent-foreground);
+  background: var(--sidebar-accent);
+}
+
+.zen-nav-item.active::before {
+  display: none;
+}
+
+/* Section divider */
+.zen-section {
+  padding: var(--spacing-2xl) var(--spacing-lg);
+}
+
+.zen-divider {
+  height: 1px;
+  background: var(--border);
+  margin: var(--spacing-lg) 0;
+}
+
+/* ============================================
+   Scrollbar
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+/* Selection */
+::selection {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+/* Focus */
+*:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out both;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 1.5s linear infinite;
+}
+
+@keyframes mist-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.animate-mist-pulse {
+  animation: mist-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+/* ============================================
+   Markdown Content
+   ============================================ */
+
+.prose ul > li,
+.prose ol > li {
+  margin-bottom: 0 !important;
+  line-height: 1.9 !important;
+}
+
+.prose ul > li > p,
+.prose ol > li > p {
+  margin-bottom: 0 !important;
+}
+
+/* ============================================
+   Theme Toggle
+   ============================================ */
+
+.theme-toggle {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: transparent;
+  border: none;
+  color: var(--muted-foreground);
+}
+
+.theme-toggle:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.theme-toggle svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.theme-toggle .sun-icon {
+  position: absolute;
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.theme-toggle .moon-icon {
+  position: absolute;
+  opacity: 0;
+  transform: rotate(90deg) scale(0.5);
+}
+
+.dark .theme-toggle .sun-icon {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.5);
+}
+
+.dark .theme-toggle .moon-icon {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+/* ============================================
+   Responsive Utilities
+   ============================================ */
+
+.course-card-text {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .course-card-text {
+    display: block;
+  }
+}
+
+/* Images */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.aspect-video,
+.aspect-\[4\/3\] {
+  background: var(--muted);
+}
+
+img[loading] {
+  background: var(--muted);
+}
+
+/* Layout responsive margin */
+.main-content {
+  margin-left: 0;
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 768px) {
+  .main-content {
+    margin-left: 14rem;
+  }
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+
+.pearl-btn {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pearl-btn::before {
+  display: none;
+}
+
+.pearl-btn:hover {
+  opacity: 0.9;
+}
+
+.mist-line {
+  height: 1px;
+  background: var(--border);
+}
+
+/* Text truncation */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ============================================
+   Reading Styles
+   ============================================ */
+
+.prose-reading {
+  line-height: 2;
+  letter-spacing: 0.01em;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.prose-reading p {
+  margin-bottom: 1.8em;
+  text-align: justify;
+}
+
+.prose-reading h2 {
+  margin-top: 3em;
+  margin-bottom: 1em;
+  font-weight: 500;
+  font-size: 1.5rem;
+}
+
+.prose-reading h3 {
+  margin-top: 2.5em;
+  margin-bottom: 0.8em;
+  font-weight: 400;
+  font-size: 1.25rem;
+}
+
+.prose-reading ul,
+.prose-reading ol {
+  margin-bottom: 1.8em;
+  padding-left: 1.5rem;
+}
+
+.prose-reading li {
+  margin-bottom: 0.5em;
+  line-height: 2;
+}
+
+.prose-reading blockquote {
+  margin: 2em 0;
+  padding-left: 1.5rem;
+  border-left: 2px solid var(--secondary);
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+/* Reading progress bar */
+.reading-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: var(--secondary);
+  z-index: 100;
+  transition: width 0.1s ease-out;
+  pointer-events: none;
+}

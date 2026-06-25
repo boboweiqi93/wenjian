@@ -1,0 +1,20 @@
+# Trae / Meoo internal
+.meoo/
+.microcompact/
+.plan/
+.todo/
+.uploads/
+
+# Skills (not part of project source)
+skills/
+
+# Test
+test/
+
+# Lock files
+pnpm-lock.yaml
+
+# Environment
+.env
+.env.local
+.env.*.local

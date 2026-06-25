@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>墨韵流光 · 音频播放器</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=ZCOOL+XiaoWei&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Serif SC', serif;
+    background: #1a1814;
+    color: #d4c5a9;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* 宣纸纹理背景 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* 水墨渐变光晕 */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -20%;
+    left: -10%;
+    width: 120%;
+    height: 60%;
+    background: radial-gradient(ellipse at 30% 20%, rgba(180, 140, 80, 0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 80%, rgba(120, 90, 50, 0.04) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 430px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 0 24px;
+  }
+
+  /* 顶部标题 */
+  header {
+    padding: 48px 0 32px;
+    text-align: center;
+  }
+
+  header h1 {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 22px;
+    letter-spacing: 8px;
+    color: #c9a96e;
+    text-shadow: 0 0 20px rgba(201, 169, 110, 0.15);
+  }
+
+  /* 课程信息区 */
+  .course-info {
+    text-align: center;
+    margin-bottom: 48px;
+    position: relative;
+  }
+
+  .course-title {
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: rgba(201, 169, 110, 0.5);
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 26px;
+    line-height: 1.6;
+    color: #e8dcc8;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  /* 进度条区域 - 光影层次 */
+  .progress-area {
+    margin-bottom: 40px;
+    position: relative;
+  }
+
+  .progress-track {
+    height: 2px;
+    background: rgba(201, 169, 110, 0.12);
+    border-radius: 1px;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 35%;
+    background: linear-gradient(90deg, #8b6f47, #c9a96e);
+    border-radius: 1px;
+    position: relative;
+    transition: width 0.3s ease;
+  }
+
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: -3px;
+    top: -2px;
+    width: 6px;
+    height: 6px;
+    background: #c9a96e;
+    border-radius: 50%;
+    box-shadow: 0 0 12px rgba(201, 169, 110, 0.4);
+  }
+
+  .time-display {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+    font-size: 11px;
+    color: rgba(212, 197, 169, 0.4);
+    letter-spacing: 1px;
+  }
+
+  /* 播放控制 - 无卡片，纯光影 */
+  .controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 48px;
+  }
+
+  .ctrl-btn {
+    background: none;
+    border: none;
+    color: rgba(201, 169, 110, 0.6);
+    cursor: pointer;
+    transition: all 0.4s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ctrl-btn:hover { color: #c9a96e; text-shadow: 0 0 16px rgba(201, 169, 110, 0.3); }
+
+  .ctrl-btn svg { width: 22px; height: 22px; fill: currentColor; }
+
+  .play-btn {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, rgba(201, 169, 110, 0.15), rgba(139, 111, 71, 0.08));
+    color: #c9a96e;
+    box-shadow: 0 0 30px rgba(201, 169, 110, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .play-btn:hover {
+    background: radial-gradient(circle at 40% 35%, rgba(201, 169, 110, 0.22), rgba(139, 111, 71, 0.12));
+    box-shadow: 0 0 40px rgba(201, 169, 110, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transform: scale(1.05);
+  }
+
+  .play-btn svg { width: 26px; height: 26px; margin-left: 2px; }
+
+  /* 音量与列表按钮 */
+  .bottom-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  .volume-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .volume-wrap svg { width: 16px; height: 16px; fill: rgba(201, 169, 110, 0.4); }
+
+  .volume-slider {
+    -webkit-appearance: none;
+    width: 72px;
+    height: 2px;
+    background: rgba(201, 169, 110, 0.12);
+    border-radius: 1px;
+    outline: none;
+  }
+
+  .volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 10px;
+    height: 10px;
+    background: #c9a96e;
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(201, 169, 110, 0.3);
+  }
+
+  .list-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1px solid rgba(201, 169, 110, 0.15);
+    color: rgba(201, 169, 110, 0.5);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-family: 'Noto Serif SC', serif;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.4s ease;
+  }
+
+  .list-btn:hover {
+    border-color: rgba(201, 169, 110, 0.3);
+    color: #c9a96e;
+    background: rgba(201, 169, 110, 0.04);
+  }
+
+  .list-btn svg { width: 14px; height: 14px; fill: currentColor; }
+
+  /* 章节列表 - 展开态 */
+  .playlist {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 40px;
+  }
+
+  .chapter-group { margin-bottom: 24px; }
+
+  .chapter-name {
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: rgba(201, 169, 110, 0.35);
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(201, 169, 110, 0.06);
+    margin-bottom: 4px;
+  }
+
+  .track-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(201, 169, 110, 0.04);
+    position: relative;
+  }
+
+  .track-item:hover { background: rgba(201, 169, 110, 0.03); }
+
+  .track-item.active {
+    background: linear-gradient(90deg, rgba(201, 169, 110, 0.06), transparent);
+  }
+
+  .track-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2px;
+    height: 60%;
+    background: #c9a96e;
+    box-shadow: 0 0 8px rgba(201, 169, 110, 0.3);
+  }
+
+  .track-name {
+    font-size: 13px;
+    color: rgba(232, 220, 200, 0.7);
+    font-weight: 300;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 80%;
+  }
+
+  .track-item.active .track-name { color: #c9a96e; }
+
+  .preview-tag {
+    font-size: 9px;
+    padding: 2px 8px;
+    border: 1px solid rgba(201, 169, 110, 0.25);
+    border-radius: 2px;
+    color: rgba(201, 169, 110, 0.5);
+    letter-spacing: 1px;
+  }
+
+  /* 动画波纹 */
+  .playing-indicator {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 14px;
+  }
+
+  .playing-indicator span {
+    width: 2px;
+    background: #c9a96e;
+    border-radius: 1px;
+    animation: wave 1.2s ease-in-out infinite;
+  }
+
+  .playing-indicator span:nth-child(1) { height: 40%; animation-delay: 0s; }
+  .playing-indicator span:nth-child(2) { height: 100%; animation-delay: 0.2s; }
+  .playing-indicator span:nth-child(3) { height: 60%; animation-delay: 0.4s; }
+
+  @keyframes wave {
+    0%, 100% { transform: scaleY(0.4); opacity: 0.5; }
+    50% { transform: scaleY(1); opacity: 1; }
+  }
+
+  /* 滚动条 */
+  .playlist::-webkit-scrollbar { width: 2px; }
+  .playlist::-webkit-scrollbar-track { background: transparent; }
+  .playlist::-webkit-scrollbar-thumb { background: rgba(201, 169, 110, 0.15); border-radius: 1px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>闻见 · 音频</h1>
+  </header>
+
+  <div class="course-info">
+    <div class="course-title">禅修入门 · 第三讲</div>
+    <div class="section-title">呼吸观照与身心安顿</div>
+  </div>
+
+  <div class="progress-area">
+    <div class="progress-track">
+      <div class="progress-fill"></div>
+    </div>
+    <div class="time-display">
+      <span>4:32</span>
+      <span>12:48</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="ctrl-btn">
+      <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+    </button>
+    <button class="ctrl-btn play-btn">
+      <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+    </button>
+    <button class="ctrl-btn">
+      <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+    </button>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="volume-wrap">
+      <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+      <input type="range" class="volume-slider" min="0" max="1" step="0.05" value="0.8">
+    </div>
+    <button class="list-btn">
+      <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+      <span>列表</span>
+    </button>
+  </div>
+
+  <div class="playlist">
+    <div class="chapter-group">
+      <div class="chapter-name">第一章 · 基础篇</div>
+      <div class="track-item active">
+        <span class="track-name">呼吸观照与身心安顿</span>
+        <div class="playing-indicator"><span></span><span></span><span></span></div>
+      </div>
+      <div class="track-item">
+        <span class="track-name">正念行走的觉察练习</span>
+        <span class="preview-tag">试听</span>
+      </div>
+      <div class="track-item">
+        <span class="track-name">身体扫描冥想引导</span>
+      </div>
+    </div>
+    <div class="chapter-group">
+      <div class="chapter-name">第二章 · 进阶篇</div>
+      <div class="track-item">
+        <span class="track-name">慈悲心的培养与扩展</span>
+      </div>
+      <div class="track-item">
+        <span class="track-name">情绪觉察与转化之道</span>
+      </div>
+      <div class="track-item">
+        <span class="track-name">日常生活中的禅修实践</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

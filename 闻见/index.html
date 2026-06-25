@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>闻见 - 课程交付平台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://pub-f16297951496430387b3905998167966.r2.dev" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400&family=Noto+Serif+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta name="referrer" content="no-referrer-when-downgrade">
+  <style>
+    /* Golden Time — inline styles to prevent FOUC */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      font-family: 'Fraunces', 'Noto Serif SC', 'Source Han Serif SC', ui-serif, serif;
+    }
+    h1, h2, h3, h4, h5, h6, .font-serif {
+      font-family: 'Fraunces', 'Noto Serif SC', 'Source Han Serif SC', ui-serif, serif;
+    }
+    /* Light mode — clean paper surface */
+    html.light, html.light body {
+      background: #fbfaf9 !important;
+      background-attachment: fixed !important;
+      color: #3b352b;
+    }
+    /* Dark mode — warm dark */
+    html.dark, html.dark body {
+      background: #060201 !important;
+      background-attachment: fixed !important;
+      color: #e3dfd6;
+    }
+  </style>
+  <script>
+    // Apply theme before React loads to prevent flash
+    (function() {
+      const isInIframe = window.self !== window.top;
+
+      function applyThemeToDOM(theme) {
+        document.documentElement.classList.remove('light', 'dark');
+        document.documentElement.classList.add(theme);
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+
+      if (isInIframe) {
+        window.addEventListener('message', function(event) {
+          if (event.data && typeof event.data.theme === 'string') {
+            const theme = event.data.theme;
+            if (theme === 'light' || theme === 'dark') {
+              applyThemeToDOM(theme);
+            }
+          }
+        });
+      } else {
+        applyThemeToDOM('light');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+</body>
+</html>

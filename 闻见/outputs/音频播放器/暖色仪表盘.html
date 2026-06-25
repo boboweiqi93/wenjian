@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>课程音频播放器 - Warm Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#d4a088;--card:#faf8f5;--accent:#4a9d9a;--coral:#c17767;--gold:#e8b86d;--text:#3d3d3d;--muted:#8a8078}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:100px}
+.card{background:var(--card);border-radius:1.5rem;box-shadow:0 8px 24px rgba(0,0,0,.08);transition:all .3s ease}
+.card:hover{box-shadow:0 16px 32px rgba(0,0,0,.12);transform:translateY(-4px)}
+.btn-accent{background:var(--accent);color:#fff;border-radius:1rem;transition:all .2s}
+.btn-accent:hover{filter:brightness(1.1);transform:scale(1.05)}
+.locked{opacity:.5;pointer-events:none}
+.preview-badge{background:linear-gradient(135deg,var(--gold),#f0c878);color:#5a4a2a;font-size:.65rem;padding:2px 8px;border-radius:999px;font-weight:700}
+.progress-bar{height:6px;background:#e8e0d8;border-radius:99px;overflow:hidden;cursor:pointer}
+.progress-fill{height:100%;background:var(--accent);border-radius:99px;transition:width .2s}
+.player-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(250,248,245,.95);backdrop-filter:blur(12px);border-top:1px solid rgba(0,0,0,.06);padding:12px 24px;z-index:50}
+.section-item{cursor:pointer;border-radius:1rem;padding:12px 16px;transition:all .2s}
+.section-item:hover{background:rgba(74,157,154,.08)}
+.section-item.active{background:rgba(74,157,154,.12);border-left:3px solid var(--accent)}
+.course-chip{padding:8px 20px;border-radius:99px;font-weight:600;font-size:.85rem;cursor:pointer;transition:all .2s;white-space:nowrap}
+.course-chip.active{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(74,157,154,.3)}
+.course-chip:not(.active){background:rgba(255,255,255,.6);color:var(--text)}
+.course-chip:not(.active):hover{background:#fff}
+</style>
+</head>
+<body>
+<div class="max-w-5xl mx-auto px-4 py-8">
+  <h1 class="text-2xl font-bold text-white mb-6 tracking-wide">🎧 课程音频</h1>
+  <!-- 课程选择 -->
+  <div class="flex gap-3 overflow-x-auto pb-4 mb-6 scrollbar-hide" id="courseList"></div>
+  <!-- 章节列表 -->
+  <div class="card p-6" id="chapterPanel">
+    <h2 class="text-lg font-bold mb-1" id="courseTitle">选择一门课程</h2>
+    <p class="text-sm mb-5" style="color:var(--muted)" id="courseDesc"></p>
+    <div id="sectionsList" class="space-y-1"></div>
+  </div>
+</div>
+<!-- 底部播放条 -->
+<div class="player-bar flex items-center gap-4" id="playerBar" style="display:none">
+  <button class="btn-accent w-10 h-10 flex items-center justify-center rounded-full flex-shrink-0" id="prevBtn">⏮</button>
+  <button class="btn-accent w-12 h-12 flex items-center justify-center rounded-full flex-shrink-0 text-lg" id="playBtn">▶</button>
+  <button class="btn-accent w-10 h-10 flex items-center justify-center rounded-full flex-shrink-0" id="nextBtn">⏭</button>
+  <div class="flex-1 min-w-0">
+    <div class="text-sm font-semibold truncate mb-1" id="nowTitle">--</div>
+    <div class="flex items-center gap-3">
+      <span class="text-xs" style="color:var(--muted)" id="curTime">0:00</span>
+      <div class="progress-bar flex-1" id="progressBar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <span class="text-xs" style="color:var(--muted)" id="durTime">0:00</span>
+    </div>
+  </div>
+  <input type="range" min="0" max="100" value="80" class="w-20 accent-[#4a9d9a]" id="volSlider">
+</div>
+<script>
+const courses=[
+  {id:1,title:'正念冥想入门',desc:'8节·已开通',unlocked:true,sections:[
+    {id:1,title:'呼吸觉察基础',dur:'12:30',preview:true,hasAudio:true},
+    {id:2,title:'身体扫描练习',dur:'18:45',preview:true,hasAudio:true},
+    {id:3,title:'情绪观察法',dur:'15:20',preview:false,hasAudio:true},
+    {id:4,title:'行走冥想',dur:'20:00',preview:false,hasAudio:true}]},
+  {id:2,title:'古典诗词赏析',desc:'6节·未开通',unlocked:false,sections:[
+    {id:5,title:'唐诗的意境之美',dur:'22:10',preview:true,hasAudio:true},
+    {id:6,title:'宋词的婉约与豪放',dur:'25:30',preview:false,hasAudio:true},
+    {id:7,title:'元曲的民间智慧',dur:'19:40',preview:false,hasAudio:true}]},
+  {id:3,title:'茶道文化精讲',desc:'5节·已开通',unlocked:true,sections:[
+    {id:8,title:'茶的起源与分类',dur:'14:20',preview:true,hasAudio:true},
+    {id:9,title:'泡茶技法详解',dur:'16:50',preview:false,hasAudio:true},
+    {id:10,title:'茶席布置美学',dur:'11:30',preview:false,hasAudio:false}]}
+];
+let curCourse=null,curSection=null,playing=false,audioProgress=0,timer=null;
+const $=s=>document.querySelector(s);
+function renderCourses(){
+  $('#courseList').innerHTML=courses.map(c=>`<div class="course-chip ${curCourse?.id===c.id?'active':''}" onclick="selectCourse(${c.id})">${c.title}</div>`).join('');
+}
+function selectCourse(id){
+  curCourse=courses.find(c=>c.id===id);
+  curSection=null;playing=false;audioProgress=0;clearInterval(timer);
+  renderCourses();renderSections();updatePlayer();
+}
+function renderSections(){
+  if(!curCourse){$('#sectionsList').innerHTML='<p style="color:var(--muted)">请先选择课程</p>';return}
+  $('#courseTitle').textContent=curCourse.title;
+  $('#courseDesc').textContent=curCourse.desc;
+  $('#sectionsList').innerHTML=curCourse.sections.map((s,i)=>{
+    const locked=!curCourse.unlocked&&!s.preview;
+    const active=curSection?.id===s.id;
+    return `<div class="section-item flex items-center justify-between ${active?'active':''} ${locked?'locked':''}" onclick="${locked?'':'playSection('+s.id+')'}">
+      <div class="flex items-center gap-3 min-w-0">
+        <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0" style="background:${active?'var(--accent)':'#e8e0d8'};color:${active?'#fff':'var(--muted)'}">${i+1}</span>
+        <div class="min-w-0"><div class="text-sm font-semibold truncate">${s.title}</div>
+        <div class="flex items-center gap-2 mt-0.5">${s.preview?'<span class="preview-badge">试听</span>':''}
+        <span class="text-xs" style="color:var(--muted)">${s.dur}</span>
+        ${!s.hasAudio?'<span class="text-xs" style="color:var(--coral)">无音频</span>':''}</div></div>
+      </div>
+      <div class="flex-shrink-0 ml-3">${locked?'🔒':active&&playing?'<span class="inline-block w-3 h-3 rounded-full bg-[#4a9d9a] animate-pulse"></span>':'▶'}</div>
+    </div>`}).join('');
+}
+function playSection(id){
+  if(!curCourse)return;
+  const s=curCourse.sections.find(x=>x.id===id);
+  if(!s||!s.hasAudio)return;
+  curSection=s;playing=true;audioProgress=0;
+  clearInterval(timer);timer=setInterval(()=>{audioProgress=Math.min(audioProgress+0.5,100);updatePlayer();if(audioProgress>=100){playing=false;clearInterval(timer);renderSections()}},200);
+  renderSections();updatePlayer();$('#playerBar').style.display='flex';
+}
+function updatePlayer(){
+  $('#playBtn').textContent=playing?'⏸':'▶';
+  if(curSection){$('#nowTitle').textContent=curSection.title;$('#progressFill').style.width=audioProgress+'%';
+    const total=parseDur(curSection.dur),cur=Math.floor(total*audioProgress/100);
+    $('#curTime').textContent=fmtTime(cur);$('#durTime').textContent=curSection.dur}
+}
+function parseDur(d){const p=d.split(':');return parseInt(p[0])*60+parseInt(p[1])}
+function fmtTime(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+$('#playBtn').onclick=()=>{if(!curSection)return;playing=!playing;if(playing){timer=setInterval(()=>{audioProgress=Math.min(audioProgress+0.5,100);updatePlayer();if(audioProgress>=100){playing=false;clearInterval(timer);renderSections()}},200)}else clearInterval(timer);updatePlayer()};
+$('#prevBtn').onclick=()=>{if(!curCourse||!curSection)return;const idx=curCourse.sections.findIndex(s=>s.id===curSection.id);if(idx>0)playSection(curCourse.sections[idx-1].id)};
+$('#nextBtn').onclick=()=>{if(!curCourse||!curSection)return;const idx=curCourse.sections.findIndex(s=>s.id===curSection.id);if(idx<curCourse.sections.length-1)playSection(curCourse.sections[idx+1].id)};
+$('#progressBar').onclick=e=>{if(!curSection)return;const r=e.currentTarget.getBoundingClientRect();audioProgress=(e.clientX-r.left)/r.width*100;updatePlayer()};
+selectCourse(1);
+</script>
+</body>
+</html>
