@@ -1,0 +1,33 @@
+@font-face {
+  font-family: 'FZ YouSong';
+  src: local('FZYouSong-B'), local('FZYouSong'), local('方正悠宋');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'FZ YouSong';
+  src: local('FZYouSong-DB'), local('FZYouSong'), local('方正悠宋');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'FZ YouSong';
+  src: local('FZYouSong-H'), local('FZYouSong'), local('方正悠宋');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+body {
+  font-family: 'Source Han Serif SC', 'Noto Serif SC', 'SimSun', serif;
+}
+
+.font-loaded body,
+.font-loaded [class*="font-serif"],
+.font-loaded [class*="font-sans"] {
+  font-family: 'FZ YouSong', 'Source Han Serif SC', 'Noto Serif SC', 'SimSun', serif;
+}

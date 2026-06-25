@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>晨雾轻纱 - 音频播放器</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Serif SC', serif;
+    min-height: 100vh;
+    background: linear-gradient(165deg, #faf8f5 0%, #f5ede6 30%, #f0e4dc 60%, #edd9d0 100%);
+    color: #5a4a42;
+    overflow-x: hidden;
+  }
+
+  /* 微妙的纹理叠加 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .player-container {
+    position: relative;
+    z-index: 1;
+    max-width: 420px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 0 24px;
+  }
+
+  /* 顶部标题 */
+  .header {
+    padding: 48px 0 32px;
+    text-align: center;
+  }
+
+  .header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-style: italic;
+    font-size: 14px;
+    letter-spacing: 4px;
+    color: #9a8578;
+    text-transform: uppercase;
+  }
+
+  /* 课程信息区 */
+  .course-info {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .course-title {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: #b09a8c;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 300;
+    line-height: 1.4;
+    color: #4a3d36;
+    letter-spacing: 1px;
+  }
+
+  /* 进度条区域 */
+  .progress-area {
+    margin-bottom: 40px;
+  }
+
+  .progress-bar {
+    height: 1px;
+    background: rgba(154, 133, 120, 0.15);
+    border-radius: 1px;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 35%;
+    background: linear-gradient(90deg, #c4a898, #d4b8a8);
+    border-radius: 1px;
+    position: relative;
+    transition: width 0.3s ease;
+  }
+
+  /* 晨光穿透效果 */
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: -2px;
+    width: 6px;
+    height: 6px;
+    background: radial-gradient(circle, #e8d5c8 0%, transparent 70%);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(212, 184, 168, 0.6);
+  }
+
+  .time-display {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #b09a8c;
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  /* 播放控制 */
+  .controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 48px;
+  }
+
+  .control-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #9a8578;
+    transition: all 0.4s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .control-btn:hover { color: #6b5a50; }
+
+  .control-btn svg { width: 20px; height: 20px; }
+
+  /* 珍珠光泽播放按钮 */
+  .play-btn {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #faf6f2, #efe5dc);
+    border: 1px solid rgba(196, 168, 152, 0.2);
+    box-shadow:
+      0 4px 16px rgba(154, 133, 120, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8),
+      inset 0 -1px 2px rgba(154, 133, 120, 0.05);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+  }
+
+  .play-btn::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, rgba(255,255,255,0.6), transparent 60%);
+    pointer-events: none;
+  }
+
+  .play-btn:hover {
+    transform: scale(1.05);
+    box-shadow:
+      0 8px 24px rgba(154, 133, 120, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      inset 0 -1px 2px rgba(154, 133, 120, 0.08);
+  }
+
+  .play-btn svg {
+    width: 22px;
+    height: 22px;
+    color: #7a6860;
+    margin-left: 2px;
+  }
+
+  /* 音量和列表按钮 */
+  .bottom-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  .volume-area {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .volume-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #b09a8c;
+    display: flex;
+  }
+
+  .volume-btn svg { width: 14px; height: 14px; }
+
+  .volume-slider {
+    width: 60px;
+    height: 1px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(154, 133, 120, 0.15);
+    border-radius: 1px;
+    outline: none;
+  }
+
+  .volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #c4a898;
+    cursor: pointer;
+    box-shadow: 0 0 4px rgba(196, 168, 152, 0.4);
+  }
+
+  .list-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(154, 133, 120, 0.12);
+    background: rgba(255, 255, 255, 0.3);
+    color: #9a8578;
+    font-size: 10px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Noto Serif SC', serif;
+  }
+
+  .list-btn:hover {
+    background: rgba(255, 255, 255, 0.5);
+    border-color: rgba(154, 133, 120, 0.2);
+  }
+
+  .list-btn svg { width: 12px; height: 12px; }
+
+  /* 播放列表 */
+  .playlist {
+    flex: 1;
+    border-top: 1px solid rgba(154, 133, 120, 0.08);
+    padding-top: 24px;
+    padding-bottom: 40px;
+  }
+
+  .playlist-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .playlist-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: #b09a8c;
+    text-transform: uppercase;
+  }
+
+  .chapter-group { margin-bottom: 8px; }
+
+  .chapter-name {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: #c4a898;
+    padding: 8px 0 4px;
+    text-transform: uppercase;
+  }
+
+  .track-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(154, 133, 120, 0.05);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .track-item:hover { padding-left: 4px; }
+
+  .track-item.active {
+    background: linear-gradient(90deg, rgba(196, 168, 152, 0.06), transparent);
+    border-left: 1px solid #c4a898;
+    padding-left: 12px;
+    margin-left: -12px;
+  }
+
+  .track-title {
+    font-size: 12px;
+    font-weight: 300;
+    color: #5a4a42;
+    letter-spacing: 0.5px;
+  }
+
+  .track-item.active .track-title { color: #4a3d36; }
+
+  .track-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .preview-tag {
+    font-size: 8px;
+    letter-spacing: 1px;
+    padding: 2px 6px;
+    border: 1px solid rgba(196, 168, 152, 0.3);
+    border-radius: 2px;
+    color: #c4a898;
+  }
+
+  /* 播放动画 */
+  .playing-indicator {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 10px;
+  }
+
+  .playing-indicator span {
+    width: 1.5px;
+    background: #c4a898;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+
+  .playing-indicator span:nth-child(1) { height: 40%; animation-delay: 0s; }
+  .playing-indicator span:nth-child(2) { height: 70%; animation-delay: 0.2s; }
+  .playing-indicator span:nth-child(3) { height: 50%; animation-delay: 0.4s; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  /* 桌面端隐藏提示 */
+  @media (min-width: 768px) {
+    .player-container { padding-top: 40px; }
+  }
+</style>
+</head>
+<body>
+<div class="player-container">
+  <header class="header">
+    <h1>Morning Mist · Audio</h1>
+  </header>
+
+  <div class="course-info">
+    <div class="course-title">禅修入门 · 第三讲</div>
+    <div class="section-title">呼吸与觉知的<br>微妙平衡</div>
+  </div>
+
+  <div class="progress-area">
+    <div class="progress-bar">
+      <div class="progress-fill"></div>
+    </div>
+    <div class="time-display">
+      <span>4:32</span>
+      <span>12:48</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="control-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 20L9 12l10-8v16z"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+    </button>
+
+    <button class="play-btn">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+    </button>
+
+    <button class="control-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 4l10 8-10 8V4z"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+    </button>
+  </div>
+
+  <div class="bottom-controls">
+    <div class="volume-area">
+      <button class="volume-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+      </button>
+      <input type="range" class="volume-slider" min="0" max="1" step="0.05" value="0.8">
+    </div>
+    <button class="list-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      <span>列表</span>
+    </button>
+  </div>
+
+  <div class="playlist">
+    <div class="playlist-header">
+      <span class="playlist-label">Chapters</span>
+    </div>
+
+    <div class="chapter-group">
+      <div class="chapter-name">第一章 · 基础</div>
+      <div class="track-item active">
+        <span class="track-title">呼吸与觉知的微妙平衡</span>
+        <div class="track-meta">
+          <div class="playing-indicator"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+      <div class="track-item">
+        <span class="track-title">身体扫描的基本方法</span>
+        <div class="track-meta"><span class="preview-tag">试听</span></div>
+      </div>
+    </div>
+
+    <div class="chapter-group">
+      <div class="chapter-name">第二章 · 进阶</div>
+      <div class="track-item">
+        <span class="track-title">念头的观察与放下</span>
+        <div class="track-meta"></div>
+      </div>
+      <div class="track-item">
+        <span class="track-title">慈悲心的培养</span>
+        <div class="track-meta"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

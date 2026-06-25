@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>课程音频播放器 - 玻璃拟态</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+:root{--glass-bg:rgba(255,255,255,0.08);--glass-border:rgba(255,255,255,0.15);--neon-glow:0 0 20px rgba(139,92,246,0.5);--active-glow:0 0 30px rgba(139,92,246,0.7)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);min-height:100vh;color:#fff;overflow-x:hidden}
+.glass{background:var(--glass-bg);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--glass-border);border-radius:16px}
+.glass-strong{background:rgba(255,255,255,0.12);backdrop-filter:blur(32px);border:1px solid rgba(255,255,255,0.2);border-radius:16px}
+.neon-border{border:1px solid rgba(139,92,246,0.4);box-shadow:var(--neon-glow)}
+.neon-border:hover{box-shadow:var(--active-glow);border-color:rgba(139,92,246,0.7)}
+.chapter-item{transition:all .3s ease}
+.chapter-item:hover{background:rgba(139,92,246,0.15);box-shadow:0 0 15px rgba(139,92,246,0.3)}
+.chapter-item.active{background:rgba(139,92,246,0.25);border-left:3px solid #a78bfa}
+.chapter-item.locked{opacity:0.5;filter:blur(0.5px)}
+.chapter-item.preview{position:relative}
+.chapter-item.preview::after{content:'试听';position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(139,92,246,0.3);border:1px solid rgba(139,92,246,0.5);box-shadow:0 0 10px rgba(139,92,246,0.4)}
+.progress-bar{background:rgba(255,255,255,0.1);border-radius:4px;height:4px;cursor:pointer;position:relative;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#8b5cf6,#a78bfa);border-radius:4px;transition:width .1s linear;box-shadow:0 0 10px rgba(139,92,246,0.6)}
+.btn-control{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s ease;border:1px solid rgba(139,92,246,0.4)}
+.btn-control:hover{box-shadow:var(--active-glow);background:rgba(139,92,246,0.2)}
+.btn-control.primary{background:rgba(139,92,246,0.3);width:56px;height:56px}
+.course-option{transition:all .2s ease;cursor:pointer}
+.course-option:hover{background:rgba(139,92,246,0.2);transform:translateX(4px)}
+.course-option.selected{background:rgba(139,92,246,0.3);border-left:3px solid #a78bfa}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.shimmer{background:linear-gradient(90deg,transparent,rgba(255,255,255,0.05),transparent);background-size:200% 100%;animation:shimmer 3s infinite}
+.orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.3;pointer-events:none}
+</style>
+</head>
+<body class="relative">
+<div class="orb w-96 h-96 bg-purple-600 top-[-10%] left-[-10%]"></div>
+<div class="orb w-80 h-80 bg-blue-600 bottom-[10%] right-[-5%]"></div>
+<div class="orb w-64 h-64 bg-indigo-500 top-[40%] left-[30%]"></div>
+
+<div class="max-w-6xl mx-auto px-4 py-8 relative z-10">
+  <header class="mb-8 text-center">
+    <h1 class="text-3xl md:text-4xl font-light tracking-wider mb-2" style="text-shadow:0 0 30px rgba(139,92,246,0.5)">课程音频播放器</h1>
+    <p class="text-white/50 text-sm font-light">沉浸式学习体验</p>
+  </header>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- 课程选择器 -->
+    <div class="lg:col-span-4 glass p-5 h-fit">
+      <h2 class="text-sm font-medium text-white/70 mb-4 tracking-wide uppercase">我的课程</h2>
+      <div class="space-y-2 max-h-[400px] overflow-y-auto pr-1" id="courseList">
+        <div class="course-option selected glass p-3 rounded-xl" onclick="selectCourse(0)">
+          <div class="text-sm font-medium">禅修入门指南</div>
+          <div class="text-xs text-white/40 mt-1">12节 · 已开通</div>
+        </div>
+        <div class="course-option glass p-3 rounded-xl" onclick="selectCourse(1)">
+          <div class="text-sm font-medium">正念冥想进阶</div>
+          <div class="text-xs text-white/40 mt-1">8节 · 已开通</div>
+        </div>
+        <div class="course-option glass p-3 rounded-xl opacity-70" onclick="selectCourse(2)">
+          <div class="text-sm font-medium">呼吸法精讲</div>
+          <div class="text-xs text-white/40 mt-1">10节 · 试听可用</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 章节列表 + 播放器 -->
+    <div class="lg:col-span-8 space-y-4">
+      <div class="glass-strong p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-lg font-medium" id="currentCourseTitle">禅修入门指南</h2>
+            <p class="text-xs text-white/40 mt-1" id="currentSectionTitle">第1节 · 认识禅修</p>
+          </div>
+          <div class="text-xs text-white/30 font-mono" id="timeDisplay">00:00 / 12:34</div>
+        </div>
+        <div class="progress-bar mb-6" onclick="seekAudio(event)">
+          <div class="progress-fill" id="progressFill" style="width:35%"></div>
+        </div>
+        <div class="flex items-center justify-center gap-6">
+          <button class="btn-control" onclick="prevSection()"><svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+          <button class="btn-control primary neon-border" id="playBtn" onclick="togglePlay()"><svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" id="playIcon"><path d="M8 5v14l11-7z"/></svg></button>
+          <button class="btn-control" onclick="nextSection()"><svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+        </div>
+      </div>
+
+      <div class="glass p-5">
+        <h3 class="text-sm font-medium text-white/70 mb-3 tracking-wide">章节目录</h3>
+        <div class="space-y-1 max-h-[320px] overflow-y-auto pr-1" id="chapterList">
+          <div class="chapter-item active p-3 rounded-lg cursor-pointer flex items-center gap-3" onclick="playSection(0)">
+            <span class="w-6 h-6 rounded-full bg-purple-500/30 flex items-center justify-center text-xs">1</span>
+            <span class="text-sm flex-1">认识禅修</span>
+            <span class="text-xs text-white/30">12:34</span>
+          </div>
+          <div class="chapter-item p-3 rounded-lg cursor-pointer flex items-center gap-3" onclick="playSection(1)">
+            <span class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">2</span>
+            <span class="text-sm flex-1">坐姿与呼吸</span>
+            <span class="text-xs text-white/30">15:20</span>
+          </div>
+          <div class="chapter-item p-3 rounded-lg cursor-pointer flex items-center gap-3" onclick="playSection(2)">
+            <span class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">3</span>
+            <span class="text-sm flex-1">观照念头</span>
+            <span class="text-xs text-white/30">18:45</span>
+          </div>
+          <div class="chapter-item preview p-3 rounded-lg cursor-pointer flex items-center gap-3" onclick="playSection(3)">
+            <span class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">4</span>
+            <span class="text-sm flex-1">慈悲心培养</span>
+            <span class="text-xs text-white/30">14:10</span>
+          </div>
+          <div class="chapter-item locked p-3 rounded-lg cursor-not-allowed flex items-center gap-3">
+            <span class="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-xs">🔒</span>
+            <span class="text-sm flex-1">深度禅定</span>
+            <span class="text-xs text-white/30">20:00</span>
+          </div>
+          <div class="chapter-item locked p-3 rounded-lg cursor-not-allowed flex items-center gap-3">
+            <span class="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-xs">🔒</span>
+            <span class="text-sm flex-1">日常修行</span>
+            <span class="text-xs text-white/30">16:30</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let isPlaying=false,currentIdx=0;
+const courses=[{title:'禅修入门指南',sections:['认识禅修','坐姿与呼吸','观照念头','慈悲心培养','深度禅定','日常修行']},{title:'正念冥想进阶',sections:['身体扫描','情绪觉察','行走冥想','饮食正念','睡眠冥想','慈悲冥想','开放觉知','整合练习']},{title:'呼吸法精讲',sections:['自然呼吸','腹式呼吸','交替鼻孔','火焰呼吸','冷却呼吸','箱式呼吸','4-7-8呼吸','能量呼吸','疗愈呼吸','整合实践']}];
+function togglePlay(){isPlaying=!isPlaying;document.getElementById('playIcon').innerHTML=isPlaying?'<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>':'<path d="M8 5v14l11-7z"/>';document.getElementById('playBtn').classList.toggle('neon-border',isPlaying)}
+function selectCourse(i){document.querySelectorAll('.course-option').forEach((el,idx)=>{el.classList.toggle('selected',idx===i)});document.getElementById('currentCourseTitle').textContent=courses[i].title;currentIdx=0;updateChapterList(i)}
+function updateChapterList(ci){const list=document.getElementById('chapterList');list.innerHTML='';courses[ci].sections.forEach((s,idx)=>{const locked=ci===2&&idx>=3;const preview=ci===2&&idx<3;const div=document.createElement('div');div.className=`chapter-item${idx===0?' active':''}${locked?' locked':''}${preview?' preview':''} p-3 rounded-lg ${locked?'cursor-not-allowed':'cursor-pointer'} flex items-center gap-3`;div.innerHTML=`<span class="w-6 h-6 rounded-full ${idx===0?'bg-purple-500/30':'bg-white/10'} flex items-center justify-center text-xs">${locked?'🔒':idx+1}</span><span class="text-sm flex-1">${s}</span><span class="text-xs text-white/30">${10+idx*3}:${String(idx*7%60).padStart(2,'0')}</span>`;if(!locked)div.onclick=()=>playSection(idx);list.appendChild(div)})}
+function playSection(i){currentIdx=i;document.querySelectorAll('.chapter-item').forEach((el,idx)=>{el.classList.toggle('active',idx===i)});const titles=['认识禅修','坐姿与呼吸','观照念头','慈悲心培养','深度禅定','日常修行'];document.getElementById('currentSectionTitle').textContent=`第${i+1}节 · ${titles[i]||'未知'}`;if(!isPlaying)togglePlay()}
+function prevSection(){if(currentIdx>0)playSection(currentIdx-1)}
+function nextSection(){const items=document.querySelectorAll('.chapter-item:not(.locked)');if(currentIdx<items.length-1)playSection(currentIdx+1)}
+function seekAudio(e){const rect=e.currentTarget.getBoundingClientRect();const pct=(e.clientX-rect.left)/rect.width*100;document.getElementById('progressFill').style.width=pct+'%'}
+setInterval(()=>{if(isPlaying){const el=document.getElementById('progressFill');let w=parseFloat(el.style.width)||0;if(w<100)el.style.width=(w+0.1)+'%'}},100);
+</script>
+</body>
+</html>

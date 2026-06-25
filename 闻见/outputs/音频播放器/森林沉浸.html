@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>森林沉浸式音频播放器</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@300;400;500&display=swap');
+  :root {
+    --forest-deep: #1a2f23;
+    --forest-mid: #2d4a3a;
+    --forest-light: #e8f0e6;
+    --wood-primary: #8b7355;
+    --wood-dark: #6b5540;
+    --leaf-green: #5a8a5e;
+    --leaf-dead: #9a8a6a;
+    --moss: #4a6b4a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans SC', sans-serif; background: var(--forest-deep); color: var(--forest-light); overflow: hidden; height: 100vh; }
+  .font-hand { font-family: 'ZCOOL KuaiLe', cursive; }
+
+  /* 呼吸灯效果 */
+  @keyframes breathe { 0%, 100% { opacity: 0.6; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } }
+  .breathe { animation: breathe 3s ease-in-out infinite; }
+
+  /* 叶片飘落 */
+  @keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg); opacity: 0; } 10% { opacity: 0.7; } 90% { opacity: 0.5; } 100% { transform: translateY(110vh) rotate(360deg); opacity: 0; } }
+  .leaf { position: absolute; width: 12px; height: 12px; background: var(--leaf-green); border-radius: 0 50% 0 50%; opacity: 0; pointer-events: none; }
+  .leaf:nth-child(1) { left: 10%; animation: fall 8s linear infinite; animation-delay: 0s; }
+  .leaf:nth-child(2) { left: 30%; animation: fall 12s linear infinite; animation-delay: 2s; background: var(--leaf-dead); }
+  .leaf:nth-child(3) { left: 55%; animation: fall 10s linear infinite; animation-delay: 4s; }
+  .leaf:nth-child(4) { left: 75%; animation: fall 14s linear infinite; animation-delay: 1s; background: var(--leaf-dead); }
+  .leaf:nth-child(5) { left: 90%; animation: fall 9s linear infinite; animation-delay: 3s; }
+
+  /* 木质按钮 */
+  .wood-btn {
+    background: linear-gradient(135deg, var(--wood-primary), var(--wood-dark));
+    border: 2px solid #5a4530;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 3px 6px rgba(0,0,0,0.4);
+    border-radius: 50%;
+    transition: all 0.2s;
+  }
+  .wood-btn:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 5px 10px rgba(0,0,0,0.5); }
+  .wood-btn:active { transform: translateY(1px); box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); }
+
+  /* 树形导航 */
+  .tree-line { position: absolute; left: 19px; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, var(--moss), transparent); }
+  .tree-node { position: relative; padding-left: 44px; }
+  .tree-node::before { content: ''; position: absolute; left: 14px; top: 50%; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--moss); background: var(--forest-deep); transform: translateY(-50%); z-index: 1; transition: all 0.3s; }
+  .tree-node.active::before { background: var(--leaf-green); border-color: var(--leaf-green); box-shadow: 0 0 8px var(--leaf-green); }
+  .tree-node.locked::before { background: var(--leaf-dead); border-color: var(--leaf-dead); }
+  .tree-node.preview::before { background: var(--leaf-green); border-color: var(--leaf-green); }
+
+  /* 进度条 */
+  .progress-track { background: rgba(255,255,255,0.1); border-radius: 4px; height: 6px; cursor: pointer; }
+  .progress-fill { background: linear-gradient(90deg, var(--leaf-green), var(--moss)); border-radius: 4px; height: 100%; transition: width 0.1s; }
+
+  /* 自然纹理叠加 */
+  .texture-overlay {
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234a6b4a' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  /* 滚动条 */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--moss); border-radius: 2px; }
+
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main-area { width: 100% !important; }
+  }
+</style>
+</head>
+<body class="texture-overlay">
+  <!-- 飘落叶片 -->
+  <div class="leaf"></div><div class="leaf"></div><div class="leaf"></div><div class="leaf"></div><div class="leaf"></div>
+
+  <div class="flex h-screen">
+    <!-- 左侧树形章节目录 -->
+    <aside class="sidebar w-72 flex-shrink-0 border-r border-[#2d4a3a] flex flex-col bg-[#15261c]/80 backdrop-blur-sm">
+      <div class="p-5 border-b border-[#2d4a3a]">
+        <h2 class="font-hand text-xl text-[#e8f0e6] tracking-wide">🌲 课程目录</h2>
+        <p class="text-xs text-[#7a9a7e] mt-1">《禅修入门·音声引导》</p>
+      </div>
+      <nav class="flex-1 overflow-y-auto p-4 relative">
+        <div class="tree-line"></div>
+        <!-- 第一章 -->
+        <div class="mb-6">
+          <p class="text-xs text-[#5a8a5e] font-medium mb-3 pl-1 tracking-widest uppercase">第一章 · 基础呼吸</p>
+          <div class="space-y-1">
+            <div class="tree-node active preview cursor-pointer py-2.5 pr-3 rounded-r-lg hover:bg-[#2d4a3a]/50 transition-all group" onclick="selectSection(this, '呼吸觉察引导', '12:30')">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-[#e8f0e6] group-hover:text-white transition-colors">呼吸觉察引导</span>
+                <span class="text-[10px] text-[#5a8a5e] bg-[#2d4a3a] px-1.5 py-0.5 rounded">试听</span>
+              </div>
+              <span class="text-xs text-[#7a9a7e] mt-0.5 block">12:30</span>
+            </div>
+            <div class="tree-node preview cursor-pointer py-2.5 pr-3 rounded-r-lg hover:bg-[#2d4a3a]/50 transition-all group" onclick="selectSection(this, '身体扫描冥想', '18:45')">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-[#c8d8c6] group-hover:text-white transition-colors">身体扫描冥想</span>
+                <span class="text-[10px] text-[#5a8a5e] bg-[#2d4a3a] px-1.5 py-0.5 rounded">试听</span>
+              </div>
+              <span class="text-xs text-[#7a9a7e] mt-0.5 block">18:45</span>
+            </div>
+            <div class="tree-node locked cursor-pointer py-2.5 pr-3 rounded-r-lg hover:bg-[#2d4a3a]/30 transition-all group opacity-60">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-[#9a8a6a]">深度放松练习</span>
+                <svg class="w-3.5 h-3.5 text-[#9a8a6a]" fill="currentColor" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+              </div>
+              <span class="text-xs text-[#7a6a5a] mt-0.5 block">25:00</span>
+            </div>
+          </div>
+        </div>
+        <!-- 第二章 -->
+        <div class="mb-6">
+          <p class="text-xs text-[#5a8a5e] font-medium mb-3 pl-1 tracking-widest uppercase">第二章 · 慈悲观想</p>
+          <div class="space-y-1">
+            <div class="tree-node locked cursor-pointer py-2.5 pr-3 rounded-r-lg hover:bg-[#2d4a3a]/30 transition-all group opacity-60">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-[#9a8a6a]">慈心冥想引导</span>
+                <svg class="w-3.5 h-3.5 text-[#9a8a6a]" fill="currentColor" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+              </div>
+              <span class="text-xs text-[#7a6a5a] mt-0.5 block">20:15</span>
+            </div>
+            <div class="tree-node locked cursor-pointer py-2.5 pr-3 rounded-r-lg hover:bg-[#2d4a3a]/30 transition-all group opacity-60">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-[#9a8a6a]">悲悯众生观想</span>
+                <svg class="w-3.5 h-3.5 text-[#9a8a6a]" fill="currentColor" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+              </div>
+              <span class="text-xs text-[#7a6a5a] mt-0.5 block">22:40</span>
+            </div>
+          </div>
+        </div>
+      </nav>
+      <div class="p-4 border-t border-[#2d4a3a] text-center">
+        <p class="text-xs text-[#5a7a5e]">已解锁 2/5 节 · 开通课程畅听全部</p>
+      </div>
+    </aside>
+
+    <!-- 右侧播放区 -->
+    <main class="main-area flex-1 flex flex-col relative" style="width: calc(100% - 18rem);">
+      <!-- 顶部信息 -->
+      <header class="p-6 flex items-center justify-between border-b border-[#2d4a3a]/50">
+        <div>
+          <p class="text-xs text-[#5a8a5e] tracking-widest uppercase mb-1">正在播放</p>
+          <h1 id="currentTitle" class="font-hand text-2xl md:text-3xl text-[#e8f0e6]">呼吸觉察引导</h1>
+          <p class="text-sm text-[#7a9a7e] mt-1">第一章 · 基础呼吸 · 12:30</p>
+        </div>
+        <div class="breathe w-16 h-16 rounded-full border-2 border-[#5a8a5e]/30 flex items-center justify-center">
+          <svg class="w-8 h-8 text-[#5a8a5e]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        </div>
+      </header>
+
+      <!-- 中央可视化区域 -->
+      <div class="flex-1 flex items-center justify-center relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-radial from-[#2d4a3a]/20 to-transparent"></div>
+        <!-- 音波可视化（模拟） -->
+        <div class="flex items-end gap-1 h-32 breathe">
+          <div class="w-2 bg-[#5a8a5e]/40 rounded-t-full" style="height:40%;animation:breathe 2s ease-in-out infinite"></div>
+          <div class="w-2 bg-[#5a8a5e]/50 rounded-t-full" style="height:70%;animation:breathe 2.3s ease-in-out infinite 0.1s"></div>
+          <div class="w-2 bg-[#5a8a5e]/60 rounded-t-full" style="height:55%;animation:breathe 1.8s ease-in-out infinite 0.2s"></div>
+          <div class="w-2 bg-[#5a8a5e]/70 rounded-t-full" style="height:85%;animation:breathe 2.5s ease-in-out infinite 0.3s"></div>
+          <div class="w-2 bg-[#5a8a5e]/60 rounded-t-full" style="height:45%;animation:breathe 2.1s ease-in-out infinite 0.15s"></div>
+          <div class="w-2 bg-[#5a8a5e]/50 rounded-t-full" style="height:65%;animation:breathe 1.9s ease-in-out infinite 0.25s"></div>
+          <div class="w-2 bg-[#5a8a5e]/40 rounded-t-full" style="height:35%;animation:breathe 2.4s ease-in-out infinite 0.05s"></div>
+        </div>
+      </div>
+
+      <!-- 底部播放控制 -->
+      <div class="p-6 md:p-8 border-t border-[#2d4a3a]/50 bg-[#15261c]/60 backdrop-blur-sm">
+        <!-- 进度条 -->
+        <div class="mb-6">
+          <div class="progress-track" onclick="seekAudio(event)">
+            <div id="progressFill" class="progress-fill" style="width: 35%"></div>
+          </div>
+          <div class="flex justify-between mt-2 text-xs text-[#7a9a7e]">
+            <span id="currentTime">4:22</span>
+            <span id="totalTime">12:30</span>
+          </div>
+        </div>
+        <!-- 控制按钮 -->
+        <div class="flex items-center justify-center gap-6 md:gap-10">
+          <button class="wood-btn w-12 h-12 flex items-center justify-center text-[#e8f0e6]" title="上一节">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+          </button>
+          <button id="playBtn" class="wood-btn w-16 h-16 flex items-center justify-center text-[#e8f0e6]" onclick="togglePlay()">
+            <svg id="playIcon" class="w-7 h-7 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <svg id="pauseIcon" class="w-7 h-7 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          </button>
+          <button class="wood-btn w-12 h-12 flex items-center justify-center text-[#e8f0e6]" title="下一节">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+          </button>
+        </div>
+        <!-- 音量 -->
+        <div class="flex items-center justify-center gap-3 mt-6">
+          <svg class="w-4 h-4 text-[#7a9a7e]" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+          <input type="range" min="0" max="100" value="80" class="w-24 h-1 bg-[#2d4a3a] rounded-lg appearance-none cursor-pointer accent-[#5a8a5e]">
+        </div>
+      </div>
+    </main>
+  </div>
+
+<script>
+  let isPlaying = false;
+  function togglePlay() {
+    isPlaying = !isPlaying;
+    document.getElementById('playIcon').classList.toggle('hidden', isPlaying);
+    document.getElementById('pauseIcon').classList.toggle('hidden', !isPlaying);
+  }
+  function selectSection(el, title, duration) {
+    if (el.classList.contains('locked')) return;
+    document.querySelectorAll('.tree-node').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('currentTitle').textContent = title;
+    document.getElementById('totalTime').textContent = duration;
+    document.getElementById('currentTime').textContent = '0:00';
+    document.getElementById('progressFill').style.width = '0%';
+    isPlaying = false;
+    document.getElementById('playIcon').classList.remove('hidden');
+    document.getElementById('pauseIcon').classList.add('hidden');
+  }
+  function seekAudio(e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct = ((e.clientX - rect.left) / rect.width) * 100;
+    document.getElementById('progressFill').style.width = Math.max(0, Math.min(100, pct)) + '%';
+  }
+</script>
+</body>
+</html>

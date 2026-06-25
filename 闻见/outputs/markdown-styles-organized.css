@@ -1,0 +1,479 @@
+/* ============================================================
+   磐磐私教学院 - Markdown 样式整理文档
+   按类别分组，方便统一维护和复用
+   ============================================================ */
+
+/* ============================================================
+   一、基础容器样式
+   ============================================================ */
+
+/* 禅意风格 Markdown 容器 */
+.zen-markdown {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 300;
+  line-height: 1.8;
+  color: #3a3a3a;
+}
+
+/* ByteMdViewer 容器 */
+.prose.prose-stone {
+  /* Tailwind prose 类提供基础样式 */
+}
+
+/* ByteMdEditor 容器 */
+.bytemd-editor {
+  /* 编辑器外层容器 */
+}
+
+/* ============================================================
+   二、标题样式 (Headings)
+   ============================================================ */
+
+/* --- 2.1 禅意风格标题 (zen-markdown) --- */
+.zen-markdown h1 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 1.875rem;
+  font-weight: 400;
+  color: #3a3a3a;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(212, 205, 197, 0.5);
+  letter-spacing: 0.02em;
+}
+
+.zen-markdown h2 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: #3a3a3a;
+  margin-top: 2rem;
+  margin-bottom: 0.875rem;
+  letter-spacing: 0.02em;
+}
+
+.zen-markdown h3 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: #4a5548;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.zen-markdown h4,
+.zen-markdown h5,
+.zen-markdown h6 {
+  font-family: 'Noto Serif SC', serif;
+  font-weight: 400;
+  color: #4a5548;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* --- 2.2 ByteMdViewer 标题 (CSS变量主题) --- */
+/* h1: text-2xl font-serif font-light mt-8 mb-4 pb-2 border-b */
+/* h2: text-xl font-serif font-light mt-6 mb-3 */
+/* h3: text-lg font-serif font-light mt-4 mb-2 */
+
+/* ============================================================
+   三、段落与文本样式
+   ============================================================ */
+
+/* --- 3.1 禅意风格段落 --- */
+.zen-markdown p {
+  margin-bottom: 1.25rem;
+  color: #5a5a5a;
+}
+
+/* --- 3.2 ByteMdViewer 段落 --- */
+/* p: text-[var(--color-text-primary)] leading-relaxed mb-4 */
+
+/* ============================================================
+   四、链接样式
+   ============================================================ */
+
+/* --- 4.1 禅意风格链接 --- */
+.zen-markdown a {
+  color: #5a7a6b;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: color 0.3s ease;
+}
+
+.zen-markdown a:hover {
+  color: #4a5548;
+}
+
+/* --- 4.2 ByteMdViewer 链接 --- */
+/* a: text-[var(--color-accent)] hover:underline transition-colors */
+
+/* ============================================================
+   五、引用块样式 (Blockquote)
+   ============================================================ */
+
+/* --- 5.1 禅意风格引用 --- */
+.zen-markdown blockquote {
+  border-left: 2px solid #8a9a7b;
+  margin: 1.5rem 0;
+  padding: 0.75rem 1.5rem;
+  background: rgba(240, 235, 227, 0.3);
+  font-style: italic;
+  color: #6a6a6a;
+}
+
+.zen-markdown blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* --- 5.2 ByteMdViewer 引用 --- */
+/* blockquote: border-l-2 border-[var(--color-accent-light)] pl-4 my-4 text-[var(--color-text-secondary)] italic */
+
+/* ============================================================
+   六、列表样式 (Lists)
+   ============================================================ */
+
+/* --- 6.1 禅意风格无序列表 --- */
+.zen-markdown ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 1.25rem 0;
+}
+
+.zen-markdown ul li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #5a5a5a;
+}
+
+.zen-markdown ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.65rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8a9a7b;
+}
+
+/* --- 6.2 禅意风格有序列表 --- */
+.zen-markdown ol {
+  padding-left: 1.5rem;
+  margin: 1.25rem 0;
+}
+
+.zen-markdown ol li {
+  margin-bottom: 0.5rem;
+  color: #5a5a5a;
+}
+
+/* --- 6.3 ByteMdViewer 列表 --- */
+/* ul: list-disc pl-6 mb-4 text-[var(--color-text-primary)] */
+/* ol: list-decimal pl-6 mb-4 text-[var(--color-text-primary)] */
+/* li: mb-1 */
+
+/* --- 6.4 任务列表 --- */
+.zen-markdown .task-list-item {
+  list-style: none;
+  padding-left: 1.5rem;
+}
+
+.zen-markdown .task-list-item input[type="checkbox"] {
+  margin-right: 0.5rem;
+  accent-color: #4a5548;
+}
+
+/* ============================================================
+   七、代码样式 (Code)
+   ============================================================ */
+
+/* --- 7.1 行内代码 --- */
+/* 禅意风格 */
+.zen-markdown code {
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  font-size: 0.875rem;
+  background: #ede9e1;
+  color: #4a5548;
+  padding: 0.125rem 0.375rem;
+  border-radius: 2px;
+}
+
+/* ByteMdViewer */
+/* code: bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] px-1.5 py-0.5 rounded text-sm font-mono */
+
+/* --- 7.2 代码块 --- */
+.zen-markdown pre {
+  background: #faf9f7;
+  border: 1px solid #d4cdc5;
+  border-radius: 4px;
+  padding: 1rem;
+  margin: 1.25rem 0;
+  overflow-x: auto;
+}
+
+.zen-markdown pre code {
+  background: transparent;
+  padding: 0;
+  color: #3a3a3a;
+}
+
+/* --- 7.3 代码高亮 --- */
+.zen-markdown .hljs {
+  background: #faf9f7 !important;
+  font-family: 'SF Mono', Monaco, monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+/* --- 7.4 代码块滚动条 --- */
+.zen-markdown pre::-webkit-scrollbar {
+  height: 6px;
+}
+
+.zen-markdown pre::-webkit-scrollbar-track {
+  background: #f0ebe3;
+}
+
+.zen-markdown pre::-webkit-scrollbar-thumb {
+  background: #d4cdc5;
+  border-radius: 3px;
+}
+
+/* ============================================================
+   八、表格样式 (Tables)
+   ============================================================ */
+
+/* --- 8.1 禅意风格表格 --- */
+.zen-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.9375rem;
+}
+
+.zen-markdown th {
+  background: #f0ebe3;
+  border: 1px solid #d4cdc5;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-family: 'Noto Serif SC', serif;
+  font-weight: 400;
+  color: #3a3a3a;
+}
+
+.zen-markdown td {
+  border: 1px solid #d4cdc5;
+  padding: 0.75rem 1rem;
+  color: #5a5a5a;
+}
+
+.zen-markdown tr:nth-child(even) {
+  background: rgba(240, 235, 227, 0.3);
+}
+
+/* --- 8.2 ByteMdViewer 表格 --- */
+/* table: w-full border-collapse mb-4 */
+/* thead: bg-[var(--color-bg-secondary)] */
+/* th: border border-[var(--color-border)] px-3 py-2 text-left text-[var(--color-text-primary)] font-medium */
+/* td: border border-[var(--color-border)] px-3 py-2 text-[var(--color-text-primary)] */
+
+/* ============================================================
+   九、分隔线样式 (Horizontal Rule)
+   ============================================================ */
+
+/* 禅意风格 */
+.zen-markdown hr {
+  border: none;
+  border-top: 1px solid rgba(212, 205, 197, 0.5);
+  margin: 2.5rem 0;
+}
+
+/* ByteMdViewer */
+/* hr: border-[var(--color-border)] my-6 */
+
+/* ============================================================
+   十、媒体元素样式
+   ============================================================ */
+
+/* --- 10.1 图片 --- */
+.zen-markdown img {
+  max-width: 100%;
+  border-radius: 4px;
+  margin: 1.5rem 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* --- 10.2 视频 --- */
+.zen-markdown video,
+.zen-markdown audio {
+  width: 100%;
+  border-radius: 4px;
+  margin: 1.5rem 0;
+}
+
+.zen-markdown video {
+  background: #faf9f7;
+  border: 1px solid #d4cdc5;
+}
+
+/* --- 10.3 音频播放器 --- */
+.zen-markdown audio::-webkit-media-controls-panel {
+  background: #f0ebe3;
+}
+
+/* --- 10.4 外部嵌入 (iframe) --- */
+/* ByteMdViewer 中的 iframe 容器 */
+/* 音乐嵌入: w-full my-4 p-3 bg-[var(--color-bg-secondary)] rounded-lg */
+/* 视频嵌入: relative w-full aspect-video my-6 */
+
+/* ============================================================
+   十一、特殊元素样式
+   ============================================================ */
+
+/* --- 11.1 数学公式 --- */
+.zen-markdown .katex {
+  font-size: 1.1em;
+}
+
+.zen-markdown .katex-display {
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
+
+/* --- 11.2 Mermaid 图表 --- */
+.zen-markdown .mermaid {
+  margin: 1.5rem 0;
+  text-align: center;
+}
+
+/* ============================================================
+   十二、编辑器专属样式 (ByteMdEditor)
+   ============================================================ */
+
+/* 编辑器主容器 */
+.bytemd {
+  border: 1px solid #d4cdc5;
+  background: #faf9f7;
+}
+
+/* 工具栏 */
+.bytemd-toolbar {
+  background: #f5f3ee;
+  border-bottom: 1px solid #e0d8cf;
+}
+
+.bytemd-toolbar-icon:hover {
+  background: #ede9e1;
+  color: #4a5548;
+}
+
+/* 编辑区域 */
+.bytemd-editor {
+  font-family: 'Noto Sans SC', sans-serif;
+}
+
+/* 预览区域 */
+.bytemd-preview {
+  background: #faf9f7;
+  font-family: 'Noto Serif SC', serif;
+}
+
+/* 状态栏 */
+.bytemd-status {
+  background: #f5f3ee;
+  border-top: 1px solid #e0d8cf;
+}
+
+/* ============================================================
+   十三、响应式适配
+   ============================================================ */
+
+@media (max-width: 768px) {
+  /* 标题字号调整 */
+  .zen-markdown h1 {
+    font-size: 1.5rem;
+  }
+
+  .zen-markdown h2 {
+    font-size: 1.25rem;
+  }
+
+  .zen-markdown h3 {
+    font-size: 1.125rem;
+  }
+
+  /* 代码块调整 */
+  .zen-markdown pre {
+    padding: 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  /* 表格调整 */
+  .zen-markdown table {
+    font-size: 0.875rem;
+  }
+
+  .zen-markdown th,
+  .zen-markdown td {
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+/* ============================================================
+   十四、打印样式
+   ============================================================ */
+
+@media print {
+  .zen-markdown {
+    color: #000;
+  }
+
+  .zen-markdown a {
+    color: #000;
+    text-decoration: underline;
+  }
+
+  .zen-markdown pre {
+    border: 1px solid #ccc;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+}
+
+/* ============================================================
+   十五、CSS 变量定义参考
+   ============================================================ */
+
+/*
+  项目中使用的 CSS 变量（在 index.css 中定义）：
+  
+  --color-bg-primary: 主背景色
+  --color-bg-secondary: 次背景色
+  --color-text-primary: 主文字色
+  --color-text-secondary: 次文字色
+  --color-accent: 强调色
+  --color-accent-light: 强调色（浅色）
+  --color-border: 边框色
+  
+  这些变量支持亮色/暗色主题切换
+*/
+
+/* ============================================================
+   十六、使用建议
+   ============================================================ */
+
+/*
+  1. 文章详情页和课程详情页使用 ByteMdViewer 组件
+     - 支持 CSS 变量主题切换
+     - 组件内联样式使用 Tailwind 类名
+  
+  2. 如需使用禅意风格，添加 .zen-markdown 类
+     - 固定配色方案
+     - 更精致的排版细节
+  
+  3. 编辑器使用 ByteMdEditor 组件
+     - 独立的样式作用域
+     - 编辑器专属样式不影响阅读视图
+*/

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>图片加载测试</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+    }
+    .image-container {
+      width: 300px;
+      height: 200px;
+      border: 2px solid #ddd;
+      margin: 10px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+    }
+    .image-container img {
+      max-width: 100%;
+      max-height: 100%;
+      display: block;
+    }
+    .error {
+      color: red;
+      font-size: 12px;
+    }
+    .success {
+      color: green;
+    }
+    #console-log {
+      background: #1a1a1a;
+      color: #0f0;
+      padding: 15px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>封面图片加载测试</h1>
+  
+  <div class="test-section">
+    <h2>测试 1: 直接加载 R2 图片</h2>
+    <div class="image-container" id="container1">
+      <img id="test-img-1" crossorigin="anonymous" referrerpolicy="no-referrer">
+    </div>
+    <div id="result1"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>测试 2: 使用 fetch 检查图片</h2>
+    <button onclick="testFetch()">测试 Fetch</button>
+    <div id="fetch-result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>浏览器信息</h2>
+    <div id="browser-info"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>控制台日志</h2>
+    <div id="console-log"></div>
+  </div>
+
+  <script>
+    // 捕获控制台日志
+    const logDiv = document.getElementById('console-log');
+    const originalLog = console.log;
+    const originalError = console.error;
+    
+    function addLog(type, ...args) {
+      const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+      logDiv.textContent += `[${type}] ${msg}\n`;
+    }
+    
+    console.log = (...args) => { addLog('LOG', ...args); originalLog.apply(console, args); };
+    console.error = (...args) => { addLog('ERROR', ...args); originalError.apply(console, args); };
+    console.warn = (...args) => { addLog('WARN', ...args); };
+
+    // 图片 URL
+    const imageUrl = 'https://pub-f16297951496430387b3905998167966.r2.dev/wenjian-covers/website/%E7%BD%91%E7%AB%99%E5%B0%81%E9%9D%A2_%E7%8C%AB%E7%9A%84%E7%96%BC%E7%97%9B%E8%AF%86%E5%88%AB%E7%B3%BB%E7%BB%9F%E5%8C%96%E7%A8%8B_v1.png';
+    
+    // 测试 1: 直接加载图片
+    const img1 = document.getElementById('test-img-1');
+    const result1 = document.getElementById('result1');
+    
+    img1.onload = function() {
+      result1.innerHTML = `<span class="success">✓ 图片加载成功!</span><br>尺寸: ${img1.naturalWidth}x${img1.naturalHeight}`;
+      console.log('Image loaded successfully:', img1.naturalWidth, 'x', img1.naturalHeight);
+    };
+    
+    img1.onerror = function(e) {
+      result1.innerHTML = `<span class="error">✗ 图片加载失败</span><br>错误: ${JSON.stringify(e)}`;
+      console.error('Image failed to load:', e);
+    };
+    
+    console.log('Setting image src:', imageUrl);
+    img1.src = imageUrl;
+
+    // 测试 2: Fetch
+    async function testFetch() {
+      const resultDiv = document.getElementById('fetch-result');
+      try {
+        console.log('Fetching image...');
+        const response = await fetch(imageUrl, { 
+          method: 'HEAD',
+          mode: 'cors',
+          referrerPolicy: 'no-referrer'
+        });
+        console.log('Fetch response:', response.status, response.headers.get('content-type'));
+        resultDiv.innerHTML = `<span class="success">✓ Fetch 成功</span><br>状态: ${response.status}<br>类型: ${response.headers.get('content-type')}`;
+      } catch (err) {
+        console.error('Fetch error:', err);
+        resultDiv.innerHTML = `<span class="error">✗ Fetch 失败: ${err.message}</span>`;
+      }
+    }
+
+    // 浏览器信息
+    document.getElementById('browser-info').innerHTML = `
+      UserAgent: ${navigator.userAgent}<br>
+      平台: ${navigator.platform}<br>
+      语言: ${navigator.language}<br>
+      在线状态: ${navigator.onLine}<br>
+      Cookie 启用: ${navigator.cookieEnabled}<br>
+      跨域支持: ${window.crossOriginIsolated}<br>
+      当前域名: ${location.hostname}<br>
+      协议: ${location.protocol}
+    `;
+    
+    console.log('Page loaded, testing image...');
+  </script>
+</body>
+</html>
